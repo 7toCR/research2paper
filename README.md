@@ -1,47 +1,51 @@
 # SCI-DR.CAN
 
-> © 2026 SCI-DR.CAN contributors
->
-> 本项目新增的 Prompt、Skill 与配套文档采用 [MIT License](LICENSE)：允许使用、修改和再分发，包括商业用途，须保留版权与许可声明。原始笔记及第三方材料的权利说明见[许可证与来源](#license)。
+<a id="overview"></a>
 
-依据 [DR.Can.md](DR.Can.md) 的七部分写作笔记，把真实研究材料组织成有证据支撑的 SCI 论文草稿。这里提供 **九份可直接复制的完整 Prompt**，以及放在独立目录中的 **sci-dr-can Skill**。默认英文正文、中文说明，适合原创研究论文的起草、修改和返修。
+## 项目介绍
 
-组织方式参考 [7toCR/paper2patent](https://github.com/7toCR/paper2patent)。
+研究记录齐全，并不意味着论文已经讲清楚问题、方法和贡献。SCI-DR.CAN 将 DR_CAN 教学整理笔记中的写作方法，组织成九份可复制的 Prompt 和一个可安装的 Agent Skill，帮助你把真实研究材料写成可复核的论文草稿。
 
-## 使用方法
+适用于原创研究论文的起草、章节修改、图表规划与图注检查、审稿回复及投稿前审查。默认英文正文、中文说明；你指定其他语言或要求保留原稿语言时，以你的要求为准。数据、引用和未完成实验的缺口会明确标注，生成文本仍需作者核对。
 
-1. 快速处理明确任务，复制 [Flash](#flash) 下方代码块的完整内容；组织整篇论文，复制 [Pro](#pro)。专项任务可从下方目录选择。
-2. 将 Prompt 粘贴到聊天工具，并填写其末尾的输入表单，或附上已有研究材料。页面内九份 Prompt 均可独立使用。
-3. 阅读英文正文及中文说明。出现 `[MISSING: ...]` 时，先补齐对应证据，再把文本用于正式稿件。
+**直接使用**：选择下方 Prompt，展开并复制整个代码块，填写末尾输入区或附上已有材料。快速任务选 Flash，整稿组织选 Pro，单章任务选专项模板。
 
-使用 Skill 时，按照 [安装与调用](#skills) 操作，再直接提供任务和材料，无需重复粘贴 Prompt。
+**安装后复用**：在支持 Skills 的客户端安装完整 `research2paper` 目录，再直接描述任务并提供材料，无需每次粘贴 Prompt。
 
-## 目录
+方法依据用户提供的 [DR.Can.md](DR.Can.md) 教学整理笔记；原教学作者、整理博主与展示形式参考分别见[致谢与来源](#acknowledgements)。
 
-| 需要做什么 | 完整 Prompt |
-| --- | --- |
-| 快速完成明确的起草或修改任务 | [01 · 写作 Flash](#flash) |
-| 组织完整论文或跨章节重组 | [02 · 写作 Pro](#pro) |
-| 建立重要性、已有研究、空白和贡献 | [03 · 引言与研究空白](#introduction) |
-| 写清研究路径、实验设置、符号与公式 | [04 · 研究方法](#methodology) |
-| 从真实结果提炼发现、解释和局限 | [05 · 结果与讨论](#results-discussion) |
-| 收束贡献，提炼摘要与标题 | [06 · 结论、摘要与标题](#conclusion-abstract-title) |
-| 规划图表、撰写图注并检查一致性 | [07 · 图表规划、图注与检查](#figures-tables) |
-| 逐条回答意见，对应真实修改与定位 | [08 · 审稿意见逐条回复](#reviewer-response) |
-| 检查证据、全稿一致性及期刊要求 | [09 · 投稿前检查](#submission-check) |
+**目录**：[项目介绍](#overview) · [完整 Prompt](#prompts) · [Skills 安装与使用](#skills) · [致谢与来源](#acknowledgements) · [许可证与使用边界](#license) · [验证记录](VALIDATION.md)
 
-其他入口：[Skill 安装与调用](#skills) · [写作规则与验证](#validation) · [许可证与来源](#license)。
+<a id="prompts"></a>
 
-Flash 与 Pro 的证据要求相同：Flash 直接完成明确任务，Pro 先组织论文主线，再分阶段撰写和检查。
+## 可直接使用的 Prompt
 
----
+<a id="sci-dr-can"></a>
 
+### SCI-DR.CAN
+
+本组依据 DR_CAN 教学整理笔记，涵盖引言、写作顺序、方法、结果讨论、图表、结论摘要标题和审稿回复。九份 Prompt 是本项目对七个教学主题的任务拆分，不是原视频发布的同名模板；本次仅提供这一方法组。
+
+**选择入口**：
+
+- 快速任务：[Flash](#sci-dr-can-flash)；整稿与跨章节任务：[Pro](#sci-dr-can-pro)。
+- 章节写作：[引言与研究空白](#sci-dr-can-introduction) · [研究方法](#sci-dr-can-methodology) · [结果与讨论](#sci-dr-can-results-discussion) · [结论、摘要与标题](#sci-dr-can-conclusion-abstract-title)。
+- 配套检查：[图表规划、图注与检查](#sci-dr-can-figures-tables) · [审稿意见逐条回复](#sci-dr-can-reviewer-response) · [投稿前检查](#sci-dr-can-submission-check)。
+
+Flash 与 Pro 的事实要求相同，区别在执行流程。每份专项 Prompt 都能独立复制，已包含执行步骤、事实边界和输入区；README 是这些完整 Prompt 的唯一维护入口。
+
+<a id="sci-dr-can-flash"></a>
 <a id="flash"></a>
 
-## SCI 写作 Flash
+#### SCI-DR.CAN · Flash
+
+快速完成范围明确的起草、修改或检查任务。
+
+<details>
+<summary>展开完整 Prompt</summary>
 
 ````markdown
-# SCI 写作 Flash
+# SCI-DR.CAN · Flash
 
 ## 角色与任务
 
@@ -60,13 +64,13 @@ Flash 与 Pro 的证据要求相同：Flash 直接完成明确任务，Pro 先�
 
 ## 写作方法
 
-整稿先整理方法，再写结果与讨论、结论、引言，最后写摘要和标题。文献核对贯穿各阶段；单章任务直接进入所需部分。
+整稿先写方法，再写结果与讨论、结论，定稿引言，完成主体后提炼摘要和标题。方法优先、文献阅读贯穿始终及摘要后写来自教学笔记；引言定稿与全文检查的具体安排属于本项目编排。单章任务直接进入所需部分。只有我明确要求早期摘要时，才给出标为“暂定草稿”的版本，并在主体完成后核对。
 
 1. **引言**：从相关背景缩小到研究对象，按思路组织已有工作，说明有文献支撑的具体空白，再引出本文方法和贡献。不要因为材料里没有某类工作就声称“首次”。
 2. **方法**：解释结果如何获得，保留影响复现的步骤、假设和设置；统一符号、单位、术语及公式编号，首次出现解释含义。
 3. **结果与讨论**：描述主要发现 → 用证据分析原因 → 讨论意义和局限。重要发现关联图表，报告不利结果；百分比与百分点分清，显著性和因果表述须有相应证据。
 4. **结论**：回应引言中的问题，归纳贡献与边界，避免复制结果段落或加入新发现。
-5. **摘要与标题**：据充分研究材料提炼问题、方法、关键结果和贡献；标题准确表达研究对象与方法或发现，不夸大效果。
+5. **摘要与标题**：从已完成的主体提炼问题、方法、关键结果和贡献；标题准确表达研究对象与方法或发现，不夸大效果。
 6. **图表**：核对正文引用、编号、图注、符号和单位；只有看到图片才能评判视觉质量，不把文字描述当作已经生成图片。
 7. **审稿回复**：逐条回答并定位实际修改；未完成实验或修改不得写成 We have conducted / revised，必要时保留缺口并标为回复工作草稿。
 
@@ -93,14 +97,20 @@ Flash 与 Pro 的证据要求相同：Flash 直接完成明确任务，Pro 先�
 ```
 ````
 
----
+</details>
 
+<a id="sci-dr-can-pro"></a>
 <a id="pro"></a>
 
-## SCI 写作 Pro
+#### SCI-DR.CAN · Pro
+
+先组织论文主线，再分阶段完成整稿或跨章节重构。
+
+<details>
+<summary>展开完整 Prompt</summary>
 
 ````markdown
-# SCI 写作 Pro
+# SCI-DR.CAN · Pro
 
 ## 角色与目标
 
@@ -129,6 +139,8 @@ Flash 与 Pro 的证据要求相同：Flash 直接完成明确任务，Pro 先�
 
 ## 第二阶段：按研究形成顺序写作
 
+默认方法先写，随后结果与讨论、结论，文献阅读与核对贯穿始终，摘要从已完成的主体提炼。引言定稿和全稿检查的阶段安排是本项目编排；只有我明确要求早期摘要时才生成标为“暂定草稿”的版本，主体完成后重新核对。
+
 ### 方法
 
 从真实研究路径起笔，解释结果如何获得。按需写问题定义、假设、模型、推导、数据、系统流程、关键参数、设备软件、评估协议和统计方法。明确沿用工作与本文改进的区别。
@@ -153,7 +165,7 @@ Flash 与 Pro 的证据要求相同：Flash 直接完成明确任务，Pro 先�
 
 ### 摘要与标题
 
-核心内容稳定后提炼问题、方法、关键结果和贡献。摘要长度及结构按期刊指南；未知时采用简洁单段，不加入正文未支撑的新信息。
+引言、方法、结果与讨论及结论完成后，提炼问题、方法、关键结果和贡献。摘要长度及结构按期刊指南；未知时采用简洁单段，不加入正文未支撑的新信息。
 
 标题表达研究对象及核心方法或发现。用户未指定时提供三个有实质差异的候选，并推荐一个；不要堆砌所有关键词或使用无依据的 first、universal、state-of-the-art。
 
@@ -197,18 +209,24 @@ Flash 与 Pro 的证据要求相同：Flash 直接完成明确任务，Pro 先�
 ```
 ````
 
----
+</details>
 
+<a id="sci-dr-can-introduction"></a>
 <a id="introduction"></a>
 
-## SCI 引言与研究空白
+#### SCI-DR.CAN · 引言与研究空白
+
+用背景、已有研究和真实贡献建立引言的论证。
+
+<details>
+<summary>展开完整 Prompt</summary>
 
 ````markdown
-# SCI 引言与研究空白
+# SCI-DR.CAN · 引言与研究空白
 
 ## 任务
 
-你是一名科研写作编辑。根据我的研究材料撰写或修改英文 Introduction，默认用中文简要解释修改理由。只处理引言；已有文献综述独立成章时，避免重复其详细内容。
+你是一名科研写作编辑。根据我的研究材料撰写或修改英文 Introduction，默认用中文简要解释修改理由。只处理引言；已有文献综述独立成章时，避免重复其详细内容。 我明确指定其他语言或要求保留原稿语言时，按我的要求执行。
 
 ## 论证结构
 
@@ -247,18 +265,24 @@ Flash 与 Pro 的证据要求相同：Flash 直接完成明确任务，Pro 先�
 ```
 ````
 
----
+</details>
 
+<a id="sci-dr-can-methodology"></a>
 <a id="methodology"></a>
 
-## SCI 研究方法
+#### SCI-DR.CAN · 研究方法
+
+说明结果如何得到，保留可复核的步骤、参数、符号和公式。
+
+<details>
+<summary>展开完整 Prompt</summary>
 
 ````markdown
-# SCI 研究方法
+# SCI-DR.CAN · 研究方法
 
 ## 任务
 
-你是一名科研写作编辑。根据我的真实研究记录撰写或修改英文 Methods，默认用中文说明修改和缺口。目标是让读者理解结果如何得到，并在具备相同条件时复核研究路径。
+你是一名科研写作编辑。根据我的真实研究记录撰写或修改英文 Methods，默认用中文说明修改和缺口。目标是让读者理解结果如何得到，并在具备相同条件时复核研究路径。 我明确指定其他语言或要求保留原稿语言时，按我的要求执行。 只处理我指定的方法章节或小节，不重写其他部分。
 
 ## 组织方式
 
@@ -300,18 +324,24 @@ Flash 与 Pro 的证据要求相同：Flash 直接完成明确任务，Pro 先�
 ```
 ````
 
----
+</details>
 
+<a id="sci-dr-can-results-discussion"></a>
 <a id="results-discussion"></a>
 
-## SCI 结果与讨论
+#### SCI-DR.CAN · 结果与讨论
+
+从真实结果展开描述、分析和讨论，区分发现与假设。
+
+<details>
+<summary>展开完整 Prompt</summary>
 
 ````markdown
-# SCI 结果与讨论
+# SCI-DR.CAN · 结果与讨论
 
 ## 任务
 
-你是一名科研写作编辑。根据我的真实结果、图表和研究问题撰写或修改英文 Results／Discussion，默认用中文说明修改与证据边界。
+你是一名科研写作编辑。根据我的真实结果、图表和研究问题撰写或修改英文 Results／Discussion，默认用中文说明修改与证据边界。 我明确指定其他语言或要求保留原稿语言时，按我的要求执行。
 
 ## 按主要发现组织
 
@@ -354,24 +384,30 @@ Flash 与 Pro 的证据要求相同：Flash 直接完成明确任务，Pro 先�
 ```
 ````
 
----
+</details>
 
+<a id="sci-dr-can-conclusion-abstract-title"></a>
 <a id="conclusion-abstract-title"></a>
 
-## SCI 结论、摘要与标题
+#### SCI-DR.CAN · 结论、摘要与标题
+
+从已完成的主体收束贡献，提炼摘要和标题。
+
+<details>
+<summary>展开完整 Prompt</summary>
 
 ````markdown
-# SCI 结论、摘要与标题
+# SCI-DR.CAN · 结论、摘要与标题
 
 ## 任务
 
-你是一名科研写作编辑。根据我的正文或充分研究材料，撰写或修改英文 Conclusion、Abstract 和 Title。只输出我指定的项目；未指定时提供三者，默认中文说明修改理由。
+你是一名科研写作编辑。根据我的正文或充分研究材料，撰写或修改英文 Conclusion、Abstract 和 Title。只输出我指定的项目；未指定时提供三者，默认中文说明修改理由。 我明确指定其他语言或要求保留原稿语言时，按我的要求执行。
 
 ## 提炼方式
 
 **结论**：先收束研究主题和方法，归纳主要发现及贡献，回应引言提出的问题。按需要说明边界、局限和未来方向。不要复制 Results、逐项复述全部指标或引入新发现；改写要重新组织论证，保持术语准确。
 
-**摘要**：从稳定的研究内容提炼“问题与重要性 → 核心方法 → 最重要结果 → 贡献与适用范围”。优先在正文核心内容稳定后写；充分的真实材料也可支持早期摘要。尚无结果的设想只能形成带缺口的草稿，不能包装成完成研究。
+**摘要**：从稳定的研究内容提炼“问题与重要性 → 核心方法 → 最重要结果 → 贡献与适用范围”。默认在引言、方法、结果与讨论、结论已经完成后写，不要求先完成排版。只有我明确要求早期摘要时，才依据现有真实材料生成标为“暂定草稿”的版本，保留结果缺口，主体完成后再核对；这一分支不替代默认顺序。尚无结果的设想不能包装成完成研究。
 
 摘要长度、分段和小标题按实际期刊指南。未知时采用简洁单段，不机械规定背景三句或方法两句。只保留必要的缩写和关键数据，不增加正文没有的引用或结论。
 
@@ -407,18 +443,24 @@ Flash 与 Pro 的证据要求相同：Flash 直接完成明确任务，Pro 先�
 ```
 ````
 
----
+</details>
 
+<a id="sci-dr-can-figures-tables"></a>
 <a id="figures-tables"></a>
 
-## SCI 图表规划、图注与检查
+#### SCI-DR.CAN · 图表规划、图注与检查
+
+规划图表用途、撰写图注并检查正文与图表的一致性。
+
+<details>
+<summary>展开完整 Prompt</summary>
 
 ````markdown
-# SCI 图表规划、图注与检查
+# SCI-DR.CAN · 图表规划、图注与检查
 
 ## 任务
 
-你是一名科研图表编辑。根据我的真实数据、图表和正文，完成指定的图表规划、英文图注／表题或图表检查，默认用中文解释修改。未要求实际制图时，交付文本规划和检查结果。
+你是一名科研图表编辑。根据我的真实数据、图表和正文，完成指定的图表规划、英文图注／表题或图表检查，默认用中文解释修改。未要求实际制图时，交付文本规划和检查结果。 我明确指定其他语言或要求保留原稿语言时，按我的要求执行。
 
 ## 先确定证据用途
 
@@ -464,18 +506,24 @@ Flash 与 Pro 的证据要求相同：Flash 直接完成明确任务，Pro 先�
 ```
 ````
 
----
+</details>
 
+<a id="sci-dr-can-reviewer-response"></a>
 <a id="reviewer-response"></a>
 
-## SCI 审稿意见逐条回复
+#### SCI-DR.CAN · 审稿意见逐条回复
+
+逐条回应审稿意见，对应真实修改和可核对位置。
+
+<details>
+<summary>展开完整 Prompt</summary>
 
 ````markdown
-# SCI 审稿意见逐条回复
+# SCI-DR.CAN · 审稿意见逐条回复
 
 ## 任务
 
-你是一名科研返修编辑。根据我的原始审稿意见、论文和真实修改记录，起草或修改英文逐条回复信，默认用中文列出待完成事项。不要代替我声称完成尚未进行的实验、分析或修改。
+你是一名科研返修编辑。根据我的原始审稿意见、论文和真实修改记录，起草或修改英文逐条回复信，默认用中文列出待完成事项。不要代替我声称完成尚未进行的实验、分析或修改。 我明确指定其他语言或要求保留原稿语言时，按我的要求执行。
 
 ## 逐条回应
 
@@ -529,18 +577,24 @@ Location: [verified location or MISSING marker]
 ```
 ````
 
----
+</details>
 
+<a id="sci-dr-can-submission-check"></a>
 <a id="submission-check"></a>
 
-## SCI 投稿前检查
+#### SCI-DR.CAN · 投稿前检查
+
+检查事实、论证、全稿一致性与实际期刊要求。
+
+<details>
+<summary>展开完整 Prompt</summary>
 
 ````markdown
-# SCI 投稿前检查
+# SCI-DR.CAN · 投稿前检查
 
 ## 任务
 
-你是一名科研稿件编辑。对我提供的论文材料做投稿前审查，找出影响事实、结论、可读性和期刊适配的问题。默认中文报告、英文局部修改建议；只检查我提供的范围，不自动重写全文。
+你是一名科研稿件编辑。对我提供的论文材料做投稿前审查，找出影响事实、结论、可读性和期刊适配的问题。默认中文报告、英文局部修改建议；只检查我提供的范围，不自动重写全文。 我明确指定其他语言或要求保留原稿语言时，按我的要求执行。
 
 先说明本次实际读取的材料和检查范围。没有读取的附件、文献、图像、原始数据或期刊指南不能声称已经核验。
 
@@ -583,83 +637,358 @@ Location: [verified location or MISSING marker]
 ```
 ````
 
----
+</details>
 
 <a id="skills"></a>
 
-## SCI-DR.CAN Skills
+## Skills 安装与使用
 
-Skill 统一放在专门的 `skills/` 目录，完整结构如下：
+一个 Skill 是一套可被客户端按任务加载的规则和资源。主版本只有 [skills/research2paper/](skills/research2paper/)，复制整个目录后即可独立使用，运行时无需仓库 README、原始笔记或来源网页。
 
 ```text
 skills/
-└── sci-dr-can/
+└── research2paper/
     ├── SKILL.md
     ├── LICENSE
     ├── agents/
     │   └── openai.yaml
     └── references/
-        └── 输入流程、章节规则、质量检查和来源映射
+        ├── intake-and-workflow.md
+        ├── introduction.md
+        ├── methodology.md
+        ├── results-discussion.md
+        ├── figures-tables.md
+        ├── conclusion-abstract-title.md
+        ├── reviewer-response.md
+        ├── quality-checklist.md
+        └── source-map.md
 ```
 
+**安装方式**：使用已有本地仓库。在本仓库根目录打开终端，先运行下面对应系统的安装函数，再运行所选客户端的一条安装命令。每个客户端只选用户级或项目级之一，兼容目录中也不要重复安装同名 Skill。项目级示例安装到当前仓库；用于其他论文项目时，将父目录改为那个项目的绝对路径，源目录仍取自本仓库。
 
-主版本位于 [skills/sci-dr-can/SKILL.md](skills/sci-dr-can/SKILL.md)。完整复制 `sci-dr-can` 文件夹即可，不能只复制 SKILL.md；其中的 references 是执行规则的一部分，LICENSE 是随包提供的 MIT 许可证。
+文档检查日期：**2026-09-08**。下表是 Skill 的父目录，安装后其下应有 `research2paper/SKILL.md`。路径依据、发现入口与未验证事项见各小节；文件复制成功、宿主发现、实际行为是三种不同的验证结果。
 
-在 Windows PowerShell 中进入本项目根目录后执行以下命令，将 Skill 安装到用户的 Codex Skills 目录。目标已经存在时会停止，避免覆盖已有版本。
+| 客户端 | 项目级父目录 | 用户级父目录 | 发现／调用入口 |
+| --- | --- | --- | --- |
+| [Codex CLI / IDE](#install-codex) | `.agents/skills/` | `~/.agents/skills/` | `/skills`、`$research2paper` |
+| [Claude Code](#install-claude) | `.claude/skills/` | `~/.claude/skills/` | `/research2paper` |
+| [Cursor](#install-cursor) | `.cursor/skills/` | `~/.cursor/skills/` | Customize → Skills；聊天中输入 `/` 搜索 |
+| [Windsurf / Cascade](#install-windsurf) | `.windsurf/skills/` | `~/.codeium/windsurf/skills/` | Cascade → 自定义菜单 → Skills；`@research2paper` |
+| [Pi Agent](#install-pi) | `.pi/skills/` | `~/.pi/agent/skills/` | `/skill:research2paper` |
+| [Gemini CLI](#install-gemini) | `.gemini/skills/` | `~/.gemini/skills/` | `/skills list`、`/skills reload` |
+| [OpenCode](#install-opencode) | `.opencode/skills/` | `~/.config/opencode/skills/` | 明确请求加载 Skill，检查 `skill` 工具记录 |
+
+Cursor、Pi、Gemini CLI 和 OpenCode 的当前文档还支持 `.agents/skills/` 与 `~/.agents/skills/`；已安装在兼容目录时无需再复制一份。OpenCode 也支持 Claude 兼容目录。下方保留各客户端的专用路径，便于单独管理。
+
+<a id="install-functions"></a>
+
+### 先准备安装函数
+
+函数会检查入口、许可证和全部引用资源；目标已存在时停止；复制后比对文件内容。它只在当前终端中定义，定义本身不会安装任何东西。出现 `Files verified` 仅表示文件层通过，还需按客户端小节确认发现和实际调用。
+
+**Windows PowerShell**：在本仓库根目录执行，适用于当前 Windows 用户；无需管理员权限。
 
 ```powershell
-$sciSkillSource = Join-Path (Get-Location) 'skills\sci-dr-can'
-$sciSkillParent = Join-Path $env:USERPROFILE '.codex\skills'
-$sciSkillTarget = Join-Path $sciSkillParent 'sci-dr-can'
-
-if (Test-Path -LiteralPath $sciSkillTarget) {
-    throw '目标 Skill 已存在，请先检查现有版本，再决定如何更新。'
+function Install-Research2Paper {
+    param([Parameter(Mandatory = $true)][string]$SkillParent)
+    $ErrorActionPreference = 'Stop'
+    $sciSource = Join-Path (Get-Location).Path 'skills/research2paper'
+    $sciRequired = @(
+        'SKILL.md', 'LICENSE', 'agents/openai.yaml',
+        'references/intake-and-workflow.md', 'references/introduction.md',
+        'references/methodology.md', 'references/results-discussion.md',
+        'references/figures-tables.md', 'references/conclusion-abstract-title.md',
+        'references/reviewer-response.md', 'references/quality-checklist.md',
+        'references/source-map.md'
+    )
+    foreach ($sciRelative in $sciRequired) {
+        if (-not (Test-Path -LiteralPath (Join-Path $sciSource $sciRelative) -PathType Leaf)) {
+            throw "Incomplete source: $sciRelative. Run from the repository root."
+        }
+    }
+    $sciParent = $ExecutionContext.SessionState.Path.GetUnresolvedProviderPathFromPSPath($SkillParent)
+    $sciTarget = Join-Path $sciParent 'research2paper'
+    if (Test-Path -LiteralPath $sciTarget) {
+        throw "Target already exists: $sciTarget. Review and back up before updating."
+    }
+    New-Item -ItemType Directory -Path $sciParent -Force | Out-Null
+    Copy-Item -LiteralPath $sciSource -Destination $sciTarget -Recurse
+    $sciFiles = @(Get-ChildItem -LiteralPath $sciSource -File -Recurse)
+    foreach ($sciFile in $sciFiles) {
+        $sciRelative = $sciFile.FullName.Substring($sciSource.Length + 1)
+        $sciCopy = Join-Path $sciTarget $sciRelative
+        if ((Get-FileHash -LiteralPath $sciFile.FullName).Hash -ne
+            (Get-FileHash -LiteralPath $sciCopy).Hash) {
+            throw "Copy mismatch: $sciRelative"
+        }
+    }
+    Write-Output "Files verified: $($sciFiles.Count) -> $sciTarget"
 }
-New-Item -ItemType Directory -Force -Path $sciSkillParent | Out-Null
-Copy-Item -LiteralPath $sciSkillSource -Destination $sciSkillTarget -Recurse
-Test-Path -LiteralPath (Join-Path $sciSkillTarget 'SKILL.md')
 ```
 
-最后应输出 `True`，表示入口文件复制成功。让宿主重新加载 Skills 或新建会话后，输入 `$sci-dr-can` 查找并调用；若未出现，先检查复制路径、完整目录及宿主的 Skill 加载设置。文件检查成功不等于已经验证宿主加载。
+**macOS / Linux / WSL 的 Bash**：在该系统可读取的本仓库根目录执行。下方 `HOME` 指此 Bash 所属系统的用户主目录；在 WSL 中不要把它和 Windows 的 `USERPROFILE` 混用。相同函数另在 Windows Git Bash 做文件复制测试，macOS、Linux、WSL 原生执行状态见[验证记录](VALIDATION.md)。
 
-自然语言调用示例：
+```bash
+install_research2paper() (
+    set -eu
+    if [ "$#" -ne 1 ]; then
+        printf '%s\n' 'Usage: install_research2paper SKILL_PARENT' >&2
+        exit 1
+    fi
+    sci_source="$PWD/skills/research2paper"
+    for sci_relative in \
+        SKILL.md LICENSE agents/openai.yaml \
+        references/intake-and-workflow.md references/introduction.md \
+        references/methodology.md references/results-discussion.md \
+        references/figures-tables.md references/conclusion-abstract-title.md \
+        references/reviewer-response.md references/quality-checklist.md \
+        references/source-map.md
+    do
+        if [ ! -f "$sci_source/$sci_relative" ]; then
+            printf 'Incomplete source: %s. Run from the repository root.\n' "$sci_relative" >&2
+            exit 1
+        fi
+    done
+    sci_parent="$1"
+    sci_target="$sci_parent/research2paper"
+    if [ -e "$sci_target" ] || [ -L "$sci_target" ]; then
+        printf 'Target already exists: %s. Review and back up before updating.\n' "$sci_target" >&2
+        exit 1
+    fi
+    mkdir -p "$sci_parent"
+    cp -R "$sci_source" "$sci_target"
+    diff -r "$sci_source" "$sci_target"
+    printf 'Files verified -> %s\n' "$sci_target"
+)
+```
 
-- “使用 $sci-dr-can，根据这些方法和实验记录，组织一份英文论文初稿。”
-- “使用 $sci-dr-can，只改这段 Introduction，保留引用编号。”
-- “使用 $sci-dr-can，写结果讨论，区分数据支持的结论与可能原因。”
-- “使用 $sci-dr-can，回复这些审稿意见；补充实验目前还没有做。”
+<a id="install-codex"></a>
 
-其他支持标准 SKILL.md 的宿主可把同一完整目录复制到其规定的 Skills 目录。当前只维护一份主版本，不提供需要同步的多套镜像；已安装副本的更新由使用者选择同步。
+### Codex CLI / IDE
 
-<a id="validation"></a>
+适用于支持 Agent Skills 的 Codex CLI 与 IDE 扩展。使用当前文档的 `.agents/skills/`；旧的 `~/.codex/skills/` 是否兼容取决于具体版本，不作为这里的唯一标准路径。
 
-## 写作规则与验证
+先在本仓库根目录运行[安装函数](#install-functions)，再二选一安装到用户级 `.agents/skills/`（主目录下）或项目级 `.agents/skills/`。
 
-- **主线一致**：研究问题 → 文献支持的空白 → 方法 → 真实结果 → 贡献。
-- **写作顺序**：方法 → 结果与讨论 → 结论 → 引言 → 摘要与标题；显示顺序仍遵循期刊论文结构。
-- **方法可复核**：保留关键条件、参数、符号、单位和公式关系，缺失信息显式标注。
-- **讨论有层次**：先描述发现，再分析原因，最后讨论意义、边界及替代解释；不以叙述掩盖不利结果。
-- **返修有对应**：每条意见、证据、真实修改和定位对应，计划中的实验不能写成已经完成。
+Windows PowerShell（默认用户级；项目级改用注释中的命令）：
 
-笔记中的引言篇幅、参考文献数量和年份、图表编号等按经验建议处理，实际期刊指南优先。详细的原文映射与调整理由见 [来源映射](skills/sci-dr-can/references/source-map.md)。
+```powershell
+Install-Research2Paper -SkillParent (Join-Path $env:USERPROFILE '.agents/skills')
+# Install-Research2Paper -SkillParent (Join-Path (Get-Location).Path '.agents/skills')
+```
 
+macOS / Linux / WSL Bash（默认用户级；项目级改用注释中的命令）：
 
-README 是九份 Prompt 的唯一维护入口；本版提供 Markdown 写作与检查工具，图表模块交付规划、图注和检查结果。实际图片、DOCX/PDF 制作需要另行使用可用工具，并核验生成产物。
+```bash
+install_research2paper "$HOME/.agents/skills"
+# install_research2paper "$PWD/.agents/skills"
+```
 
-目录中的教学示例与 [验收场景](examples/acceptance-cases.md) 均不能当作真实研究证据。模板检查也不能代替作者核对数据、统计和引用。
+**发现与调用**：新建会话或重新加载扩展，在支持该入口的界面输入 `/skills` 查看，或输入 `$research2paper` 选择并附上任务。确认列表中出现此名称，并能加载对应章节规则。
 
-具体检查结果见 [验证记录](VALIDATION.md)，其中区分文件检查、场景人工走查和尚未执行的宿主端验证。
+**来源与状态**：[OpenAI：Build skills](https://developers.openai.com/codex/skills)／[ChatGPT Learn](https://learn.chatgpt.com/docs/build-skills)。路径与入口由本次重制说明记录的 2026-09-08 官方文档核对提供；本轮复核收到 HTTP 403 或连接超时，未取得正文。 本项目尚未在此客户端实测发现和行为；复制测试只验证文件完整性。
+
+<a id="install-claude"></a>
+
+### Claude Code
+
+适用于 Claude Code 的项目技能与个人技能。项目目录只作用于该项目，用户目录可供本机多个项目使用。
+
+先在本仓库根目录运行[安装函数](#install-functions)，再二选一安装到用户级 `.claude/skills/`（主目录下）或项目级 `.claude/skills/`。
+
+Windows PowerShell（默认用户级；项目级改用注释中的命令）：
+
+```powershell
+Install-Research2Paper -SkillParent (Join-Path $env:USERPROFILE '.claude/skills')
+# Install-Research2Paper -SkillParent (Join-Path (Get-Location).Path '.claude/skills')
+```
+
+macOS / Linux / WSL Bash（默认用户级；项目级改用注释中的命令）：
+
+```bash
+install_research2paper "$HOME/.claude/skills"
+# install_research2paper "$PWD/.claude/skills"
+```
+
+**发现与调用**：打开该项目并启动新会话，输入 `/research2paper`，随后提供材料；也可描述匹配任务，让 Claude 按描述选择。确认命令可发现且执行时读取本 Skill，而不是只凭文件存在判断。
+
+**来源与状态**：[Claude Code：Extend Claude with skills](https://code.claude.com/docs/en/skills)，本轮已读取官方正文。 本项目尚未在此客户端实测发现和行为；复制测试只验证文件完整性。
+
+<a id="install-cursor"></a>
+
+### Cursor
+
+适用于 Cursor 本地 Agent 的技能发现。远程会话、Cloud Agents 的文件同步另有条件，本地安装不代表这些环境已获得文件。
+
+先在本仓库根目录运行[安装函数](#install-functions)，再二选一安装到用户级 `.cursor/skills/`（主目录下）或项目级 `.cursor/skills/`。
+
+Windows PowerShell（默认用户级；项目级改用注释中的命令）：
+
+```powershell
+Install-Research2Paper -SkillParent (Join-Path $env:USERPROFILE '.cursor/skills')
+# Install-Research2Paper -SkillParent (Join-Path (Get-Location).Path '.cursor/skills')
+```
+
+macOS / Linux / WSL Bash（默认用户级；项目级改用注释中的命令）：
+
+```bash
+install_research2paper "$HOME/.cursor/skills"
+# install_research2paper "$PWD/.cursor/skills"
+```
+
+**发现与调用**：重新加载项目，在侧栏 Customize → Skills 查看 `research2paper`；Agent 聊天中输入 `/` 搜索并选择它，再描述任务。确认任务实际加载了对应规则。界面依据本轮官方页面。
+
+**来源与状态**：[Cursor：Agent Skills](https://cursor.com/docs/skills)，本轮已读取官方正文。 本项目尚未在此客户端实测发现和行为；复制测试只验证文件完整性。
+
+<a id="install-windsurf"></a>
+
+### Windsurf / Cascade
+
+适用于 Cascade 技能目录。Windsurf 文档当前跳转至 Devin Desktop / Cascade，下述界面按该页面说明；旧版 Windsurf 的菜单文字可能不同，Devin Local 使用另一套发现规则。
+
+先在本仓库根目录运行[安装函数](#install-functions)，再二选一安装到用户级 `.codeium/windsurf/skills/`（主目录下）或项目级 `.windsurf/skills/`。
+
+Windows PowerShell（默认用户级；项目级改用注释中的命令）：
+
+```powershell
+Install-Research2Paper -SkillParent (Join-Path $env:USERPROFILE '.codeium/windsurf/skills')
+# Install-Research2Paper -SkillParent (Join-Path (Get-Location).Path '.windsurf/skills')
+```
+
+macOS / Linux / WSL Bash（默认用户级；项目级改用注释中的命令）：
+
+```bash
+install_research2paper "$HOME/.codeium/windsurf/skills"
+# install_research2paper "$PWD/.windsurf/skills"
+```
+
+**发现与调用**：重新打开项目，在 Cascade 面板右上角三点菜单 → Skills 确认 `research2paper`，再用 `@research2paper` 附上任务，或由匹配描述自动选择。以规则已加载的记录确认发现。
+
+**来源与状态**：[Windsurf：Cascade Skills](https://docs.windsurf.com/windsurf/cascade/skills)，本轮跳转并读取 [Devin Desktop / Cascade](https://docs.devin.ai/desktop/cascade/skills)。 本项目尚未在此客户端实测发现和行为；复制测试只验证文件完整性。
+
+<a id="install-pi"></a>
+
+### Pi Agent
+
+适用于下述 Pi 项目文档所描述的技能发现。项目级技能仅在项目受信任后加载；阅读技能内容后，按客户端自身提示决定是否信任。此文档不保证其他 fork 或本机发行版完全一致。
+
+先在本仓库根目录运行[安装函数](#install-functions)，再二选一安装到用户级 `.pi/agent/skills/`（主目录下）或项目级 `.pi/skills/`。
+
+Windows PowerShell（默认用户级；项目级改用注释中的命令）：
+
+```powershell
+Install-Research2Paper -SkillParent (Join-Path $env:USERPROFILE '.pi/agent/skills')
+# Install-Research2Paper -SkillParent (Join-Path (Get-Location).Path '.pi/skills')
+```
+
+macOS / Linux / WSL Bash（默认用户级；项目级改用注释中的命令）：
+
+```bash
+install_research2paper "$HOME/.pi/agent/skills"
+# install_research2paper "$PWD/.pi/skills"
+```
+
+**发现与调用**：在目标项目启动新会话，输入 `/skill:research2paper` 并附上任务，确认命令可发现且读取到章节规则。命令未出现时检查项目是否受信任、名称冲突，以及 `enableSkillCommands` 是否被禁用；不要关闭信任检查。
+
+**来源与状态**：[Pi：Skills](https://github.com/earendil-works/pi/blob/main/packages/coding-agent/docs/skills.md)，本轮读取文件 blob SHA 为 `02835f82005407b44887f27bca8517ba58dd624b`。 本项目尚未在此客户端实测发现和行为；复制测试只验证文件完整性。
+
+<a id="install-gemini"></a>
+
+### Gemini CLI
+
+适用于支持 Agent Skills 的 Gemini CLI。相同范围内 `.agents/skills/` 别名优先于 `.gemini/skills/`，只在一个目录安装。
+
+先在本仓库根目录运行[安装函数](#install-functions)，再二选一安装到用户级 `.gemini/skills/`（主目录下）或项目级 `.gemini/skills/`。
+
+Windows PowerShell（默认用户级；项目级改用注释中的命令）：
+
+```powershell
+Install-Research2Paper -SkillParent (Join-Path $env:USERPROFILE '.gemini/skills')
+# Install-Research2Paper -SkillParent (Join-Path (Get-Location).Path '.gemini/skills')
+```
+
+macOS / Linux / WSL Bash（默认用户级；项目级改用注释中的命令）：
+
+```bash
+install_research2paper "$HOME/.gemini/skills"
+# install_research2paper "$PWD/.gemini/skills"
+```
+
+**发现与调用**：在目标项目运行 Gemini CLI，用 `/skills list` 查看；未刷新时执行 `/skills reload`，然后输入“请加载并使用 research2paper，只改这个方法小节”。若被禁用，先确认再用 `/skills enable research2paper` 启用；技能激活按客户端提示确认。列表发现与实际激活需分别确认。
+
+**来源与状态**：[Gemini CLI：Agent Skills](https://geminicli.com/docs/cli/skills/)，本轮已读取官方正文。 本项目尚未在此客户端实测发现和行为；复制测试只验证文件完整性。
+
+<a id="install-opencode"></a>
+
+### OpenCode
+
+适用于 OpenCode 的原生技能目录；项目路径在 Git 工作区内按文档向上查找。用户路径采用官方默认 `~/.config/opencode/skills/`，自定义配置目录及 Windows 原生路径映射需按所用版本确认。
+
+先在本仓库根目录运行[安装函数](#install-functions)，再二选一安装到用户级 `.config/opencode/skills/`（主目录下）或项目级 `.opencode/skills/`。
+
+Windows PowerShell（默认用户级；项目级改用注释中的命令）：
+
+```powershell
+Install-Research2Paper -SkillParent (Join-Path $env:USERPROFILE '.config/opencode/skills')
+# Install-Research2Paper -SkillParent (Join-Path (Get-Location).Path '.opencode/skills')
+```
+
+macOS / Linux / WSL Bash（默认用户级；项目级改用注释中的命令）：
+
+```bash
+install_research2paper "$HOME/.config/opencode/skills"
+# install_research2paper "$PWD/.opencode/skills"
+```
+
+**发现与调用**：在目标项目启动新会话，输入“请加载并使用 research2paper，只改这个方法小节”。检查宿主 `skill` 工具的发现及加载记录是否包含 `research2paper`；没有单凭自然语言回复判定安装成功。未发现时检查目录、frontmatter 和技能权限配置。
+
+**来源与状态**：[OpenCode：Agent Skills](https://opencode.ai/docs/skills/)，本轮已读取官方正文。 本项目尚未在此客户端实测发现和行为；复制测试只验证文件完整性。
+
+<a id="skill-maintenance"></a>
+
+### 更新、卸载与常见问题
+
+**从旧名迁移**：若已安装旧版 `sci-dr-can`，先备份并将旧目录移出客户端扫描范围，再按上面的命令安装 `research2paper`，后续使用新名称调用。
+
+**更新**：先找到实际安装的 `research2paper` 目录，把它备份到客户端扫描范围之外，核对自己修改过的规则。确认备份可恢复后，将旧目录移出该安装位置，再运行对应安装命令；比较新旧规则并手动合并需要保留的改动。不要把备份留在另一个会被扫描的 skills 子目录中。
+
+**卸载**：只将所选安装位置下的 `research2paper` 目录移到扫描范围之外，重新打开会话并确认技能不再出现。备份按需保留，不操作整个 `skills` 父目录。若仍被发现，检查是否另有同名副本。
+
+**常见问题**：
+
+- `Incomplete source`：确认终端位于本仓库根目录，且完整下载了 Skill；只拿到 `SKILL.md` 不够。
+- `Target already exists`：先按上面的更新步骤核对旧版本，不在命令中添加强制覆盖。
+- 文件完整但找不到技能：检查实际客户端使用的系统、用户主目录和项目范围，刷新会话；再检查名称冲突、信任状态、启用状态及宿主日志。WSL 与 Windows 的安装不会自动互通。
+- 能发现但规则没有生效：明确选中或请求加载 `research2paper`，再检查是否读取了对应章节资源；不能只看模型是否提及这个名称。
+
+**行为核验任务（合成示例，不是真实论文）**：提供同一测试协议下的准确率 80% 和 84%，不提供统计检验，要求“只写一段结果讨论”。输出应区分提高 4 个百分点与相对提高 5%，不声称统计显著，也不扩写其他章节。更多输入见[验收场景](examples/acceptance-cases.md)。
+
+<a id="acknowledgements"></a>
+
+## 致谢与来源
+
+感谢 B 站 UP 主 [DR_CAN](https://space.bilibili.com/230105574) 分享 SCI 论文写作教学。本项目的 SCI-DR.CAN 模块依据相关教学内容的整理笔记，将论文结构、研究方法、结果与讨论、图表、结论、摘要、标题及审稿回复等写作方法组织为可复用的 Prompt 与 Agent Skill。
+
+相关教学视频：[DR_CAN SCI 论文写作教学视频](https://www.bilibili.com/video/BV1pW411A7C2/)。
+
+同时感谢 [整理 DR_CAN SCI 教学视频的博主](https://space.bilibili.com/60706948) 对相关内容的梳理与分享，为本项目的方法整理提供了参考。
+
+本项目的 README 展示方式、可复制 Prompt 与 Skills 的组织形式参考了 [7toCR/paper2patent](https://github.com/7toCR/paper2patent)，感谢其开源分享。
+
+本项目是基于教学整理材料进行的工具化整理，并非 DR_CAN 或上述整理博主的官方项目，也不表示已获得其背书。教学内容、整理材料与本项目新增的执行规则分别注明来源，相关第三方材料不因本项目的许可证而被重新授权。
+
+角色与 B 站地址依据用户提供的信息；本轮页面抓取受到访问限制，未逐段观看或核验视频。原始带参数的视频地址、笔记中的其他视频及规则调整理由见[来源映射](skills/research2paper/references/source-map.md)。
 
 <a id="license"></a>
 
-## 许可证与来源
+## 许可证与使用边界
 
-本项目新增的 Prompt、Skill 和配套文档采用 [MIT License](LICENSE)，版权署名为 SCI-DR.CAN contributors。单独复制 Skill 时，请保留其目录内的 [LICENSE](skills/sci-dr-can/LICENSE)。
+© 2026 SCI-DR.CAN contributors。本项目新增的 Prompt、Skill 和配套文档采用 [MIT License](LICENSE)：允许使用、修改和再分发，包括商业用途，须保留版权与许可声明。单独复制 Skill 时请保留包内 [LICENSE](skills/research2paper/LICENSE)。
 
-`DR.Can.md` 是用户提供的原始教学整理笔记，保持原文不变；其中涉及的原始内容及其他第三方材料保留各自权利和来源，不因本项目新增 MIT 许可证而被重新授权。
+`DR.Can.md` 是用户提供的原始教学整理笔记，保持原文不变；原教学内容、整理材料及其他第三方内容保留各自权利和来源，不因本项目的 MIT 许可证而被重新授权。
 
-### 来源与致谢
+本项目交付 Markdown 写作与检查规则，图表模块提供规划、图注和可核实的检查结果；没有内置科研绘图、DOCX/PDF 导出、自动投稿或联网检索服务。教学示例与验收用例不是真实研究证据，文本检查也不能代替实验、统计和引用核验。
 
-- **写作内容**：[DR.Can.md](DR.Can.md)，涵盖引言、论文流程、方法、结果讨论、图表、结论摘要标题、审稿回复。没有补写原笔记中的 OCR 缺失内容。
-- **组织方式**：[7toCR/paper2patent](https://github.com/7toCR/paper2patent) 的 Flash／Pro 与分层 Skill，查阅日期 2026-09-08，参考版本 [6a37c3a](https://github.com/7toCR/paper2patent/tree/6a37c3a3d295e020b9180d5d1a84642fa3801380)。
-- **规则性质**：这是基于教学笔记整理的写作工具，不是期刊官方规范，也不代表 DR_CAN 官方发布或认可。
+<a id="validation"></a>
+
+本次实际检查、失败信息与尚未执行的客户端验证见[验证记录](VALIDATION.md)；维护者可在本仓库根目录运行 `python -X utf8 tests/validate.py` 复查结构与安装示例。该脚本是维护检查工具，不属于 Skill 运行依赖。

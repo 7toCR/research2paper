@@ -1,4 +1,0 @@
-interface:
-  display_name: "SCI-DR.CAN 科研写作"
-  short_description: "依据研究证据组织 SCI 论文、检查图表并逐条回复审稿意见"
-  default_prompt: "使用 $sci-dr-can，依据我提供的研究材料完成指定写作任务，输出英文正文、中文说明及必要的材料缺口。"

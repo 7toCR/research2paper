@@ -1,0 +1,31 @@
+# Default to local-only files; explicitly allow the maintained deliverables below.
+*
+!/.gitignore
+!/README.md
+!/LICENSE
+!/DR.Can.md
+!/VALIDATION.md
+
+# Acceptance examples and the reproducible maintenance check.
+!/examples/
+!/examples/acceptance-cases.md
+!/tests/
+!/tests/validate.py
+
+# The complete, independently installable Skill.
+!/skills/
+!/skills/research2paper/
+!/skills/research2paper/SKILL.md
+!/skills/research2paper/LICENSE
+!/skills/research2paper/agents/
+!/skills/research2paper/agents/openai.yaml
+!/skills/research2paper/references/
+!/skills/research2paper/references/intake-and-workflow.md
+!/skills/research2paper/references/introduction.md
+!/skills/research2paper/references/methodology.md
+!/skills/research2paper/references/results-discussion.md
+!/skills/research2paper/references/figures-tables.md
+!/skills/research2paper/references/conclusion-abstract-title.md
+!/skills/research2paper/references/reviewer-response.md
+!/skills/research2paper/references/quality-checklist.md
+!/skills/research2paper/references/source-map.md
