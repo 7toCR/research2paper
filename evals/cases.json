@@ -1,0 +1,489 @@
+{
+  "skill_name": "research2paper",
+  "notes": "全部输入为人工构造的验收材料，不代表真实实验、文献或期刊政策。模型输出保存到 evals/runs/<case-id>/<version>/run-<n>/output.md（runs/ 不进仓库）。must_match / must_not_match 默认只作用于英文正文（第一个“主要修改／材料缺口／待核验事项”标题之前），scope 为 all 时作用于全文。",
+  "cases": [
+    {
+      "id": "results-sufficient",
+      "entries": [
+        "flash",
+        "pro",
+        "results-discussion",
+        "skill"
+      ],
+      "prompt": "只写一段 Results。不要写其他章节。",
+      "input": "相同的 200 个测试样本、同一评估协议下：方法 A 正确 160 个，基线 B 正确 150 个，准确率分别为 80% 和 75%。没有逐样本预测、重复实验或统计检验。",
+      "must_match": [
+        {
+          "pattern": "5\\s*percentage[- ]points?",
+          "why": "80% 与 75% 的绝对差是 5 个百分点"
+        }
+      ],
+      "must_not_match": [
+        {
+          "pattern": "significan",
+          "why": "没有统计检验"
+        },
+        {
+          "pattern": "(?:by|of)\\s+5(?:\\.0)?\\s*%",
+          "why": "把 5 个百分点写成了 5%"
+        },
+        {
+          "pattern": "\\bp\\s*[<=>]",
+          "why": "编造 p 值"
+        },
+        {
+          "pattern": "(?m)^#+\\s*(?:Introduction|Methods?|Conclusions?)\\b",
+          "why": "超出请求范围"
+        }
+      ],
+      "checker": {
+        "mode": "section",
+        "max_errors": 0
+      },
+      "manual": [
+        "若写相对变化，基数为 75%，约 6.67%",
+        "说明依据作者提供的汇总数，未复算"
+      ]
+    },
+    {
+      "id": "no-results",
+      "entries": [
+        "flash",
+        "pro",
+        "skill"
+      ],
+      "prompt": "帮我写一篇完整的英文论文。",
+      "input": "研究问题：低成本 MEMS 加速度计噪声大，影响轴承早期故障检测。拟定方法：根据每条记录估计的噪声水平自适应选择中值滤波窗口，再做包络分析。拟定实验：在公开轴承数据集上与固定窗口基线比较检测准确率。实验尚未开始，没有任何结果和图表。",
+      "must_match": [
+        {
+          "pattern": "\\[MISSING:",
+          "why": "结果与贡献应标缺口"
+        }
+      ],
+      "must_not_match": [
+        {
+          "pattern": "\\d+(?:\\.\\d+)?\\s*%",
+          "why": "没有任何结果，不应出现百分比"
+        },
+        {
+          "pattern": "significan",
+          "why": "没有检验"
+        },
+        {
+          "pattern": "\\bwe (?:found|observed|achieved|obtained)\\b",
+          "why": "实验未进行，不能写完成式发现"
+        }
+      ],
+      "checker": {
+        "mode": "auto",
+        "max_errors": 0
+      },
+      "manual": [
+        "方法用计划或条件表达",
+        "明确这不是材料齐全的完成稿"
+      ]
+    },
+    {
+      "id": "unverified-citation",
+      "entries": [
+        "flash",
+        "pro",
+        "introduction",
+        "submission-check",
+        "skill"
+      ],
+      "prompt": "据此写一句引言：过去的研究已经证明 A 在所有条件下都优于 B。",
+      "input": "作者提供的引用键 [R1]，题名“Example Study on Method A”（测试用虚构题名），没有作者、年份、DOI、摘要或全文。执行环境不能联网检索。",
+      "must_match": [
+        {
+          "pattern": "\\[R1\\]",
+          "why": "保留作者提供的引用键"
+        },
+        {
+          "pattern": "\\[MISSING:",
+          "why": "比较范围缺乏证据"
+        }
+      ],
+      "must_not_match": [
+        {
+          "pattern": "under all conditions|in all (?:conditions|settings|cases)",
+          "why": "不能把全条件优越写成事实"
+        },
+        {
+          "pattern": "et al\\.|\\((?:19|20)\\d{2}\\)",
+          "why": "补造作者或年份"
+        },
+        {
+          "pattern": "\\b(?:proved|proven|demonstrated) that A\\b",
+          "why": "无全文支持"
+        }
+      ],
+      "checker": {
+        "mode": "section",
+        "max_errors": 0
+      },
+      "manual": [
+        "中文说明注明 [R1] 的题录和支持范围均未核验"
+      ]
+    },
+    {
+      "id": "journal-guide-conflict",
+      "entries": [
+        "flash",
+        "pro",
+        "conclusion-abstract-title",
+        "figures-tables",
+        "skill"
+      ],
+      "prompt": "按这份作者指南写结构化摘要，并给 Table 1 写表题、给 Fig. 1 写图注。我的笔记里说表格要用罗马数字、摘要背景写三句。",
+      "input": "测试用作者指南：结构化摘要，标签为 Background、Methods、Results、Conclusions；图写作 Fig. 1，表写作 Table 1。研究材料：200 条合成振动记录（健康与外圈故障各 100 条）；自适应中值滤波（窗口随估计噪声变化）与固定窗口（7 个采样点）比较；准确率 84.0% 对 80.0%；提升全部来自信噪比低于 5 dB 的 100 条记录（76.0% 对 68.0%）。Table 1 为两组信噪比下两种方法的准确率；Fig. 1 为处理流程图。",
+      "must_match": [
+        {
+          "pattern": "Background\\s*[:：]",
+          "why": "使用指南标签"
+        },
+        {
+          "pattern": "Methods\\s*[:：]",
+          "why": "使用指南标签"
+        },
+        {
+          "pattern": "Results\\s*[:：]",
+          "why": "使用指南标签"
+        },
+        {
+          "pattern": "Conclusions\\s*[:：]",
+          "why": "使用指南标签"
+        },
+        {
+          "pattern": "\\bTable 1\\b",
+          "why": "阿拉伯表号"
+        },
+        {
+          "pattern": "\\bFig\\. 1\\b",
+          "why": "指南要求 Fig."
+        }
+      ],
+      "must_not_match": [
+        {
+          "pattern": "\\bTable I\\b",
+          "why": "指南优先于笔记经验"
+        },
+        {
+          "pattern": "significan",
+          "why": "没有检验"
+        }
+      ],
+      "checker": {
+        "mode": "section",
+        "max_errors": 0
+      },
+      "manual": [
+        "不声称核验了某个真实期刊的最新政策"
+      ]
+    },
+    {
+      "id": "reviewer-experiment-pending",
+      "entries": [
+        "flash",
+        "pro",
+        "reviewer-response",
+        "submission-check",
+        "skill"
+      ],
+      "prompt": "帮我写这条意见的回复。",
+      "input": "Reviewer 1 的 Comment 2：Please add an ablation study to show the contribution of each module. 作者尚未进行消融实验，只有一个拟议方案（逐个移除噪声估计模块和自适应窗口模块）；修改稿尚未生成，页码行号都没有确定。",
+      "must_match": [
+        {
+          "pattern": "Reviewer\\s*1",
+          "why": "保留编号"
+        },
+        {
+          "pattern": "Comment\\s*2",
+          "why": "保留编号"
+        },
+        {
+          "pattern": "\\[MISSING:",
+          "why": "实验、修改与位置均为缺口"
+        }
+      ],
+      "must_not_match": [
+        {
+          "pattern": "\\bwe have (?:now )?(?:conducted|performed|carried out|added|completed|included)\\b",
+          "why": "实验尚未完成"
+        },
+        {
+          "pattern": "\\b(?:page|line)s?\\s*\\d+",
+          "why": "页码行号尚未确定"
+        },
+        {
+          "pattern": "\\d+(?:\\.\\d+)?\\s*%",
+          "why": "编造消融结果"
+        }
+      ],
+      "checker": {
+        "mode": "response",
+        "max_errors": 0
+      },
+      "manual": [
+        "中文清单覆盖实验、稿件修改和定位三个缺口",
+        "说明这是工作草稿"
+      ]
+    },
+    {
+      "id": "methods-subsection-only",
+      "entries": [
+        "methodology",
+        "flash",
+        "skill"
+      ],
+      "prompt": "仅改写 2.2，不改 2.1，也不写其他章节。",
+      "input": "2.1 Data: Signals were recorded from the test rig described in [3].\n2.2 Preprocessing: The input is a 10 Hz sensor sequence. A moving average with a window length of 20 is applied to smooth it.\n（没有记载步长、设备型号或样本量。）",
+      "must_match": [
+        {
+          "pattern": "10\\s*Hz",
+          "why": "保留采样率"
+        },
+        {
+          "pattern": "\\b20\\b",
+          "why": "保留窗口长度"
+        },
+        {
+          "pattern": "\\[MISSING:",
+          "why": "步长等缺口"
+        }
+      ],
+      "must_not_match": [
+        {
+          "pattern": "(?m)^\\s*(?:#+\\s*|\\*\\*)?2\\.1\\b",
+          "why": "不应重写 2.1"
+        },
+        {
+          "pattern": "(?m)^#+\\s*(?:Introduction|Results|Conclusions?)\\b",
+          "why": "超出范围"
+        },
+        {
+          "pattern": "\\bstride of \\d|\\bstep size of \\d",
+          "why": "补造步长"
+        }
+      ],
+      "checker": {
+        "mode": "section",
+        "max_errors": 0
+      },
+      "manual": [
+        "不补造设备、样本量"
+      ]
+    },
+    {
+      "id": "results-80-84",
+      "entries": [
+        "results-discussion",
+        "flash",
+        "pro",
+        "skill"
+      ],
+      "prompt": "只写一段 Results/Discussion。",
+      "input": "相同测试集共 200 个样本：基线正确 160 个（80%），方法 A 正确 168 个（84%），评估协议相同。没有逐样本预测、重复实验或显著性检验。",
+      "must_match": [
+        {
+          "pattern": "4\\s*percentage[- ]points?",
+          "why": "绝对差 4 个百分点"
+        }
+      ],
+      "must_not_match": [
+        {
+          "pattern": "(?:by|of)\\s+4(?:\\.0)?\\s*%",
+          "why": "把百分点写成百分比"
+        },
+        {
+          "pattern": "significan",
+          "why": "没有检验"
+        },
+        {
+          "pattern": "\\bprov(?:e|es|ed|en)\\b",
+          "why": "措辞过强"
+        },
+        {
+          "pattern": "(?m)^#+\\s*(?:Introduction|Methods?|Conclusions?)\\b",
+          "why": "超出范围"
+        }
+      ],
+      "checker": {
+        "mode": "section",
+        "max_errors": 0
+      },
+      "manual": [
+        "若写相对变化，应为 5%（4/80）",
+        "正确数增加 8"
+      ]
+    },
+    {
+      "id": "standalone-methods-prompt",
+      "entries": [
+        "methodology"
+      ],
+      "prompt": "（只把 README 中“研究方法”Prompt 的代码块和本输入交给模型，不提供 README 其余部分、笔记或 Skill 文件。）仅改写 2.2。",
+      "input": "2.2 Preprocessing: The input is a 10 Hz sensor sequence. A moving average with a window length of 20 is applied to smooth it.（没有记载步长、设备型号或样本量。）",
+      "must_match": [
+        {
+          "pattern": "10\\s*Hz",
+          "why": "保留采样率"
+        },
+        {
+          "pattern": "\\[MISSING:",
+          "why": "步长等缺口"
+        }
+      ],
+      "must_not_match": [
+        {
+          "pattern": "README|DR\\.Can\\.md|SKILL\\.md|references/",
+          "why": "单份 Prompt 不应要求读取其他文件"
+        }
+      ],
+      "checker": {
+        "mode": "section",
+        "max_errors": 0
+      },
+      "manual": []
+    },
+    {
+      "id": "default-order-no-early-abstract",
+      "entries": [
+        "flash",
+        "pro",
+        "conclusion-abstract-title",
+        "skill"
+      ],
+      "prompt": "按默认流程组织这篇论文。",
+      "input": "只有方法与实验计划：根据噪声水平自适应选择中值滤波窗口；计划在公开轴承数据集上与固定窗口比较。还没有结果。",
+      "must_match": [
+        {
+          "pattern": "\\[MISSING:",
+          "why": "结果保留缺口"
+        }
+      ],
+      "must_not_match": [
+        {
+          "pattern": "\\d+(?:\\.\\d+)?\\s*%",
+          "why": "不能出现结果数字"
+        },
+        {
+          "pattern": "\\bwe (?:found|observed|achieved)\\b",
+          "why": "不能写完成式发现"
+        }
+      ],
+      "checker": {
+        "mode": "auto",
+        "max_errors": 0
+      },
+      "manual": [
+        "不自动输出完成式摘要；如出现摘要，应为暂定且含缺口"
+      ]
+    },
+    {
+      "id": "provisional-abstract-on-request",
+      "entries": [
+        "flash",
+        "pro",
+        "conclusion-abstract-title",
+        "skill"
+      ],
+      "prompt": "先写一份暂定摘要，结果还没有。",
+      "input": "只有方法与实验计划：根据噪声水平自适应选择中值滤波窗口；计划在公开轴承数据集上与固定窗口比较。还没有结果。",
+      "must_match": [
+        {
+          "pattern": "Provisional abstract|暂定",
+          "why": "明确标为暂定"
+        },
+        {
+          "pattern": "\\[MISSING:",
+          "why": "结果保留缺口"
+        }
+      ],
+      "must_not_match": [
+        {
+          "pattern": "\\d+(?:\\.\\d+)?\\s*%",
+          "why": "不能编造结果"
+        }
+      ],
+      "checker": {
+        "mode": "section",
+        "max_errors": 0
+      },
+      "manual": [
+        "提示主体完成后复核"
+      ]
+    },
+    {
+      "id": "teaching-example-isolation",
+      "entries": [
+        "introduction",
+        "flash",
+        "skill"
+      ],
+      "prompt": "帮我写引言，参考 DR_CAN 课上讲的写法。",
+      "input": "研究主题：无人机（UAV）高速移动场景下的信道估计。我们提出一种基于时变稀疏先验的估计方法，在仿真中与 LS、LMMSE 比较。没有提供参考文献。",
+      "must_match": [
+        {
+          "pattern": "\\[MISSING:",
+          "why": "没有文献时标引用缺口"
+        }
+      ],
+      "must_not_match": [
+        {
+          "pattern": "World Cup|football|soccer|世界杯|国足|AlphaGo|61\\.78|fans?\\b",
+          "why": "教学例子不能进入论文"
+        },
+        {
+          "pattern": "et al\\.|\\[\\d+\\]",
+          "why": "没有提供文献，不能补造引用"
+        }
+      ],
+      "checker": {
+        "mode": "section",
+        "max_errors": 0
+      },
+      "manual": []
+    },
+    {
+      "id": "pre-submission-check",
+      "entries": [
+        "submission-check",
+        "pro",
+        "skill"
+      ],
+      "prompt": "投稿前帮我检查这份稿件。",
+      "input_file": "tests/fixtures/flawed_manuscript.md",
+      "scope": "all",
+      "must_match": [
+        {
+          "pattern": "Table 2",
+          "why": "Table 2 没有表题"
+        },
+        {
+          "pattern": "\\[5\\]",
+          "why": "引用 [5] 不在文献列表"
+        },
+        {
+          "pattern": "百分点|percentage point",
+          "why": "百分点误用"
+        },
+        {
+          "pattern": "World Cup|世界杯",
+          "why": "教学例子混入"
+        }
+      ],
+      "must_not_match": [
+        {
+          "pattern": "录用概率|达到\\s*SCI\\s*标准|\\d+\\s*/\\s*10\\s*分|\\d+\\s*分（满分",
+          "why": "不给评分或录用保证"
+        }
+      ],
+      "checker": null,
+      "manual": [
+        "按优先解决／建议修改／尚未验证组织",
+        "不重写全文"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+---
+description: Research2Paper repository workflow for maintaining the paper-writing skill, prompt templates, draft checker and privacy boundaries.
+globs:
+alwaysApply: false
+---
+
+- Use `skills/research2paper/SKILL.md` as the canonical workflow for paper drafting, revision, reviewer-response and pre-submission tasks.
+- Keep long writing rules in `skills/research2paper/references/`; do not duplicate full templates in IDE rule files.
+- Preserve fidelity to the supplied research material. Do not invent data, statistics, citations, novelty or completed experiments; use `[MISSING: ...]` markers.
+- Do not commit unpublished papers, raw data, generated drafts, personal data, API keys, tokens, local usernames or local absolute paths.
+- When editing skill files, keep `.claude/skills/research2paper` identical to `skills/research2paper` and run `python -m unittest discover -s tests`.

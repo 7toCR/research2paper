@@ -1,0 +1,26 @@
+% Test fixture: deliberately flawed synthetic LaTeX draft. Every defect here is intentional.
+\documentclass{article}
+\newcommand{\R}{\mathbb{R}} % comment with Fig. 9
+\begin{document}
+\title{Robust Channel Estimation for UAV Links}
+\maketitle
+\begin{abstract}
+Unmanned aerial vehicle (UAV) links suffer from fast fading. We show a gain of 3.2 dB in NMSE.
+\end{abstract}
+\section{Introduction}
+Prior work \cite{smith2020,missingkey} studied MIMO channels. See Fig.~\ref{fig:setup} and the table below.
+\section{System Model}
+The received signal is
+\begin{equation}
+y = Hx + n \label{eq:model}
+\end{equation}
+Using \eqref{eq:model} and \eqref{eq:undefined} we derive the estimator.
+\begin{figure}\centering\caption{Setup.}\label{fig:setup}\end{figure}
+\begin{table}\caption{Unused table.}\label{tab:unused}\end{table}
+\section{Results}
+The NMSE improved by 3.2 dB, which proves the estimator always works.
+\section{Conclusion}
+We achieved a 3.2 dB gain.
+\bibliographystyle{plain}
+\bibliography{flawed_paper}
+\end{document}

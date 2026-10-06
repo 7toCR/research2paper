@@ -1,0 +1,177 @@
+"""Regression tests for skills/research2paper/scripts/check_paper_draft.py.
+
+Run from the repository root:  python -m unittest discover -s tests
+"""
+
+from __future__ import annotations
+
+import contextlib
+import io
+import sys
+import tempfile
+import unittest
+import zipfile
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+SKILL = ROOT / "skills" / "research2paper"
+FIXTURES = Path(__file__).resolve().parent / "fixtures"
+sys.path.insert(0, str(SKILL / "scripts"))
+
+import check_paper_draft as cpd  # noqa: E402
+
+
+def run(path: Path, *extra: str) -> cpd.Report:
+    args = cpd.build_parser().parse_args([str(path), *extra])
+    doc = cpd.load_document(args.input, args.format)
+    notes = args.notes.read_text(encoding="utf-8") if args.notes else None
+    return cpd.run_checks(doc, args, notes)
+
+
+def codes(report: cpd.Report, level: str | None = None) -> set[str]:
+    return {f.code for f in report.findings if level is None or f.level == level}
+
+
+def run_text(text: str, suffix: str = ".md", *extra: str) -> cpd.Report:
+    with tempfile.TemporaryDirectory() as tmp:
+        p = Path(tmp) / f"draft{suffix}"
+        p.write_text(text, encoding="utf-8")
+        return run(p, *extra)
+
+
+class ExamplesPass(unittest.TestCase):
+    def test_example_manuscript_is_clean(self):
+        r = run(SKILL / "assets" / "example_manuscript.md", "--abstract-words", "200")
+        self.assertEqual(r.mode, "manuscript")
+        self.assertEqual(r.count("ERROR"), 0, cpd.format_report(r))
+        self.assertEqual(r.count("WARN"), 0, cpd.format_report(r))
+
+    def test_example_response_is_clean(self):
+        r = run(SKILL / "assets" / "example_response_letter.md")
+        self.assertEqual(r.mode, "response")
+        self.assertEqual(r.count("ERROR"), 0, cpd.format_report(r))
+        self.assertEqual(r.count("WARN"), 0, cpd.format_report(r))
+
+    def test_cli_exit_codes(self):
+        with contextlib.redirect_stdout(io.StringIO()):
+            self.assertEqual(cpd.main([str(SKILL / "assets" / "example_manuscript.md")]), 0)
+            self.assertEqual(cpd.main([str(FIXTURES / "flawed_manuscript.md")]), 1)
+
+
+class FlawedManuscript(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.r = run(FIXTURES / "flawed_manuscript.md")
+
+    def test_errors(self):
+        self.assertTrue({"C01", "E01", "F01", "G01"} <= codes(self.r, "ERROR"), cpd.format_report(self.r))
+
+    def test_warnings(self):
+        expected = {"A01", "C02", "C04", "D01", "F02", "F03", "F04", "F06", "G02", "G04", "N01",
+                    "W01", "W02", "W03", "W04", "W05"}
+        self.assertTrue(expected <= codes(self.r, "WARN"), sorted(expected - codes(self.r, "WARN")))
+
+    def test_percentage_point_message(self):
+        msg = next(f.message for f in self.r.findings if f.code == "W04")
+        self.assertIn("4 percentage points", msg)
+        self.assertIn("5%", msg)
+
+
+class FlawedLatex(unittest.TestCase):
+    def test_latex(self):
+        r = run(FIXTURES / "flawed_paper.tex")
+        self.assertEqual(r.fmt, "tex")
+        self.assertTrue({"C01", "L01"} <= codes(r, "ERROR"), cpd.format_report(r))
+        self.assertTrue({"A02", "C04", "F04", "L02", "W03"} <= codes(r, "WARN"), cpd.format_report(r))
+        # the commented-out "Fig. 9" must not be read
+        self.assertFalse(any("9" in f.message and f.code.startswith("F") for f in r.findings))
+
+
+class FlawedResponse(unittest.TestCase):
+    def test_response(self):
+        r = run(FIXTURES / "flawed_response.md")
+        self.assertEqual(r.mode, "response")
+        self.assertIn("R01", codes(r, "ERROR"))
+        self.assertTrue({"R02", "R03", "R04", "R05"} <= codes(r, "WARN"), cpd.format_report(r))
+        # wording inside quoted reviewer comments is not the authors' claim
+        self.assertNotIn("W01", codes(r))
+
+
+class Heuristics(unittest.TestCase):
+    def test_honest_significance_statement_not_flagged(self):
+        r = run_text("## Results\n\nThe 4-point gain has not been tested for statistical significance.\n",
+                     ".md", "--mode", "section")
+        self.assertNotIn("W02", codes(r))
+
+    def test_relative_change_is_fine(self):
+        r = run_text("## Results\n\nAccuracy rose from 80% to 84%, a relative increase of 5%.\n", ".md",
+                     "--mode", "section")
+        self.assertNotIn("W04", codes(r))
+
+    def test_interval_is_not_a_citation(self):
+        r = run_text("## Methods\n\nValues are normalised to [0, 1] and clipped in [1, 10].\n\n"
+                     "## References\n\n[1] A. Example, Placeholder, 2020.\n", ".md", "--mode", "section")
+        self.assertNotIn("C01", codes(r))
+
+    def test_first_order_is_not_a_priority_claim(self):
+        r = run_text("## Methods\n\nwhere the input is the first-order difference of the signal.\n", ".md",
+                     "--mode", "section")
+        self.assertNotIn("W01", codes(r))
+
+    def test_hard_wrapped_fig_line_is_not_a_caption(self):
+        r = run_text("## Results\n\nThe trend is shown in\nFig. 3. It decreases.\n", ".md", "--mode", "section")
+        self.assertNotIn("F02", codes(r))
+
+    def test_title_starting_with_method_word(self):
+        r = run_text("# Data-Driven Fault Detection\n\n## Abstract\n\nText.\n\n## Introduction\n\nText.\n\n"
+                     "## Methods\n\nText.\n\n## Results\n\nText.\n\n## Conclusion\n\nText.\n")
+        self.assertEqual(r.mode, "manuscript")
+        self.assertNotIn("S01", codes(r))
+
+    def test_yaml_frontmatter_is_metadata(self):
+        r = run_text("---\ntitle: 'A Package for ORCID Things'\nauthors:\n  - name: X\n# a YAML comment\n---\n\n"
+                     "# Summary\n\nText.\n", ".md", "--mode", "section")
+        self.assertNotIn("A02", codes(r))
+
+    def test_abstract_word_limit(self):
+        r = run(SKILL / "assets" / "example_manuscript.md", "--abstract-words", "50")
+        self.assertIn("S04", codes(r, "ERROR"))
+
+    def test_notes_file(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            notes = Path(tmp) / "notes.md"
+            notes.write_text("- `[MISSING: stride of the sliding window]`：请提供。\n", encoding="utf-8")
+            draft = Path(tmp) / "d.md"
+            draft.write_text("## Methods\n\nThe stride is [MISSING: stride of the sliding window].\n",
+                             encoding="utf-8")
+            r = run(draft, "--notes", str(notes))
+            self.assertNotIn("G04", codes(r, "WARN"))
+
+    def test_docx_input(self):
+        w = "http://schemas.openxmlformats.org/wordprocessingml/2006/main"
+
+        def para(text: str, style: str | None = None) -> str:
+            ppr = f'<w:pPr><w:pStyle w:val="{style}"/></w:pPr>' if style else ""
+            return f"<w:p>{ppr}<w:r><w:t>{text}</w:t></w:r></w:p>"
+
+        body = "".join([
+            para("Adaptive Filtering for Sensors", "Title"),
+            para("Abstract", "Heading1"), para("We test a filter on 200 recordings."),
+            para("Introduction", "Heading1"), para("Sensors are noisy [1]."),
+            para("Methods", "Heading1"), para("We use a TODO filter."),
+            para("Results", "Heading1"), para("Accuracy was 84.0% on 200 recordings."),
+            para("Conclusion", "Heading1"), para("The filter helps."),
+        ])
+        xml = f'<?xml version="1.0" encoding="UTF-8"?><w:document xmlns:w="{w}"><w:body>{body}</w:body></w:document>'
+        with tempfile.TemporaryDirectory() as tmp:
+            p = Path(tmp) / "draft.docx"
+            with zipfile.ZipFile(p, "w") as z:
+                z.writestr("word/document.xml", xml)
+            r = run(p)
+        self.assertEqual(r.mode, "manuscript")
+        self.assertNotIn("S01", codes(r))
+        self.assertIn("G02", codes(r))
+
+
+if __name__ == "__main__":
+    unittest.main()

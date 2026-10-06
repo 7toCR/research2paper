@@ -1,31 +1,25 @@
-# Default to local-only files; explicitly allow the maintained deliverables below.
-*
-!/.gitignore
-!/README.md
-!/LICENSE
-!/DR.Can.md
-!/VALIDATION.md
+# Local-only working directories and notes
+plan/
+reference_skills/
+user.md
+*.local.md
 
-# Acceptance examples and the reproducible maintenance check.
-!/examples/
-!/examples/acceptance-cases.md
-!/tests/
-!/tests/validate.py
+# Evaluation inputs and outputs (materials may be unpublished)
+evals/inputs/
+evals/runs/
+evals/report*.json
 
-# The complete, independently installable Skill.
-!/skills/
-!/skills/research2paper/
-!/skills/research2paper/SKILL.md
-!/skills/research2paper/LICENSE
-!/skills/research2paper/agents/
-!/skills/research2paper/agents/openai.yaml
-!/skills/research2paper/references/
-!/skills/research2paper/references/intake-and-workflow.md
-!/skills/research2paper/references/introduction.md
-!/skills/research2paper/references/methodology.md
-!/skills/research2paper/references/results-discussion.md
-!/skills/research2paper/references/figures-tables.md
-!/skills/research2paper/references/conclusion-abstract-title.md
-!/skills/research2paper/references/reviewer-response.md
-!/skills/research2paper/references/quality-checklist.md
-!/skills/research2paper/references/source-map.md
+# Generated outputs and temporary files
+*.log
+*.tmp
+*.bak
+*.zip
+*.pyc
+__pycache__/
+.pytest_cache/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
