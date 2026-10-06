@@ -17,21 +17,46 @@ Write continuous prose. Do not leave "Background / Literature review / Thesis st
 
 If a separate Related Work section exists, keep only the overview needed for motivation in the Introduction and move detailed comparisons there.
 
+## Open with the specific tension
+
+The strongest first paragraph names the concrete problem the paper works on, not a generic statement that the field is important or that data are multimodal. A reliable shape is two linked observations that expose the step the paper studies:
+
+- "[Output] can score well on [usual criterion] and still fail [the requirement that matters here]."
+- "Even when [the requirement] is understood, it may not be expressible through [the interface/mechanism that existing systems use]."
+- "This paper studies the step in between: how [understanding] is turned into [executable decision]."
+
+Background then supports this tension instead of preceding it for a page. Use the author's facts and citations for each observation; if an observation has no support yet, it is a position to verify, not an opening claim.
+
+## Connect prior work to the design
+
+After organising prior work by approach, make the link to this paper explicit: for each design choice, say which limitation it answers and how.
+
+- "Because [limitation of approach X], we [design choice], so that [consequence]."
+
+Without this link the Introduction reads as "here is what others did; here is what we did", and the reader has to guess why the design is a response to the problem.
+
+## Position positively, close with contributions
+
+- State what the paper does and on what evidence. Reserve "we do not claim …" for a reader's likely misreading, at most once; never a run of negative positioning sentences (see `paper-layer.md`, checker W07).
+- Close the Introduction with the contributions: two to four items, each naming a concrete object (a representation, a procedure, a finding), what it does, and where it is evaluated ("Section 4.3"). A reader should be able to remember the paper by these names.
+
 ## Evidence rules for the gap
 
 - State each gap with its scope ("for multi-rate sensor fusion under packet loss", not "in general").
 - "No one has studied X" cannot be inferred from the author not supplying such papers. Strong claims ("first", "no prior work", "fills the gap", "leading") need a documented search and comparison; otherwise rewrite them as a scoped, specific problem statement.
-- A title or abstract supports only what it actually says. Keep each citation attached to the statement it supports; ask for full text when the support is unclear.
+- A title or abstract supports only what it actually says. Keep each citation attached to the statement it supports; ask for full text (in the memo) when the support is unclear.
 - Recent work shows the current state; foundational older work is not removed for being old. Cite as many sources as the argument needs.
-- Importance, advantages and contributions must not exceed what the experiments or theory support.
+- Importance, advantages and contributions must not exceed what the experiments or theory support. Which references you could not verify is memo information, not Introduction text.
 
 ## Useful sentence patterns
 
 Placeholders only — fill with the author's facts, never with invented ones.
 
+- Tension: "[Output] may meet [criterion] yet fail [requirement]; and [understanding] may not translate into [actionable condition]."
 - Narrowing: "Among these applications, [specific object] is particularly demanding because [verified reason] [ref]."
 - Prior work by approach: "One line of work addresses [problem] by [approach] [refs]; these methods assume [assumption], which [specific limitation] when [condition]."
 - Gap: "However, [specific problem] under [condition] remains [unresolved / unquantified], because [reason supported by refs]."
+- Design link: "To address this, we [design choice], which [mechanism] and thus [effect]."
 - This work: "In this paper, we [method] to [address the gap]. We evaluate it on [data/setting] and show that [supported result]."
 - Contributions: one sentence each, each traceable to a section and a result.
 
@@ -41,4 +66,4 @@ From the DR_CAN notes: cite recent work (≈ last five years), choose references
 
 ## Self-check
 
-A reader of the Introduction alone can say: what the problem is, where existing methods fall short, what this paper does about it, and which evidence supports which contribution. If the gap still lacks literature, keep the marker and flag it in the notes. No conclusions or numbers appear that the Results do not deliver.
+A reader of the Introduction alone can say: what the problem is, where existing methods fall short, why each part of the design answers that shortfall, what this paper contributes and where each contribution is evaluated. If the gap still lacks literature, keep the marker and flag it in the memo. No conclusions or numbers appear that the Results do not deliver.

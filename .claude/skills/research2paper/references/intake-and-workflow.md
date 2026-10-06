@@ -34,18 +34,25 @@ Only an idea, no results yet: write the outline, research questions and planned 
 
 ## Evidence classes
 
-For each claim the draft relies on, keep a short location (file § section, Table 2, Fig. 3b, p. 4, citation key) and one class:
+For each claim the draft relies on, keep a short location (file § section, Table 2, Fig. 3b, p. 4, citation key) and one class. The classes steer what you write and what you report in the memo; they are never written into the paper as such.
 
-- **Verified**: material you actually read supports it. State the scope ("based on the summary table supplied; raw data not recomputed").
-- **Author-reported**: the author says so, you could not check. Usable in the draft, listed under 待核验事项.
-- **Interpretation**: a hypothesis or mechanism. Write it with hedged verbs (may, might, is consistent with, suggests) and name what would test it.
-- **Missing or conflicting**: `[MISSING: …]` in the text; for conflicts, list both sources and values in the notes. Never average, never pick the more favourable value, never smooth the narrative over the conflict.
+- **Verified**: material you actually read supports it. Write it plainly in the paper; note the scope of your check in the memo ("依据作者提供的汇总表，未复算原始数据").
+- **Author-reported**: the author says so, you could not check. Write it plainly in the paper as the authors' statement; list it under 待核验事项.
+- **Interpretation**: a hypothesis or mechanism. Write it with hedged verbs (may, might, is consistent with, suggests) and name what would test it — this one *does* shape the paper's wording.
+- **Missing or conflicting**: a short `[MISSING: …]` in the text where the fact is needed; the reason, and for conflicts both sources and values, go in the memo. Never average, never pick the more favourable value, never smooth the narrative over the conflict.
 
 Output the full claim-to-evidence table only for full drafts, disputed facts or on request.
+
+## Two layers: paper and memo
+
+Read `references/paper-layer.md` before drafting. In short: the paper is the authors' account of their research; everything about the material, your checks and how the draft was made goes to the Chinese memo. Material audits (code, logs, prompt files, repositories) feed the evidence sheet and the memo; they are not part of the paper's narrative. Each limitation is stated once at its claim plus once in a Limitations paragraph; the Abstract carries at most one sentence of it.
+
+When the authors supply their own draft, it is the base text: revise it in place of writing a new one, keep their structure, terminology and voice, and list every change under 主要修改.
 
 ## Gap marker format
 
 - Always `[MISSING: specific information]` — say exactly what is missing: `[MISSING: number of independent runs per condition]`, not `[MISSING]` or `[MISSING: details]`.
+- Name the item only, in about 12 words or fewer. Why it is missing and what you searched belong in the memo (checker G06).
 - Citation gaps: `[MISSING: source supporting this statement]`.
 - Response letters: `[MISSING: completed analysis and manuscript changes]`, `[MISSING: manuscript location]`.
 - Do not use TODO, TBD, XXX, `??`, `[citation needed]` or Chinese placeholders inside the English text; the checker flags them.

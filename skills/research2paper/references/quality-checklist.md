@@ -14,6 +14,7 @@ Use before delivering a full draft and for every pre-submission check. Check onl
 | G03 | INFO | List of all `[MISSING: …]` markers |
 | G04 | WARN | Marker not mentioned in the gap notes (section 材料缺口 / Gaps, or `--notes`) |
 | G05 | INFO | Markers inside Title/Abstract (acceptable only in a provisional abstract) |
+| G06 | WARN | Marker longer than ~15 words: it carries an explanation that belongs in the memo |
 | F01 / E01 | ERROR | Figure, table or equation cited but not defined |
 | F02 | WARN | Figure or table defined but never cited in the text |
 | F03 | WARN | Figures/tables not first cited in numerical order |
@@ -31,6 +32,9 @@ Use before delivering a full draft and for every pre-submission check. Check onl
 | W03 | WARN | "prove", "guarantee", "always", "completely eliminate", "perfect" … |
 | W04 | WARN | "by X %" where X equals the difference of two percentages (should be percentage points) |
 | W05 | WARN | Teaching-example leakage (DR_CAN's football / fan-age examples) |
+| W06 | WARN | Drafting or verification remark in the paper text ("this draft", "the supplied materials", "could not be confirmed from the records", "not recomputed here", "work tree") |
+| W07 | WARN | Boundary overload: ≥ 2 limitation/disclaimer sentences in the Abstract or the Conclusion, or ≥ 3 in one paragraph outside the Limitations paragraph |
+| M01 | INFO | Methods paragraph with several settings and no stated purpose (rationale missing) |
 | N01 | WARN | Number glued to a unit (`10Hz` → `10 Hz`) |
 | D01 | WARN | Number in Abstract/Conclusion not found in the body |
 | D02 | WARN | Conclusion or Abstract sentence copied from Results/Discussion |
@@ -64,7 +68,16 @@ Zero ERRORs before delivery. A WARN is acceptable only when you can say why it i
 
 Check only against guidelines actually obtained (name the version or access date): article type, sections, word limits, abstract form, figure/table style, reference style. Rules not obtained are listed as unchecked. The notes' rules of thumb (10 % Introduction, last five years, ~20 references, Roman table numbers) are not standards.
 
-## F. Revision status (resubmissions)
+## F. Paper layer and information budget
+
+- The paper contains only the research narrative; every remark about the material, the checks and the drafting is in the memo (W06).
+- Each limitation appears once at its claim and once in a Limitations paragraph; the Abstract carries at most one sentence of it; the Conclusion ends on the main line, not on to-dos (W07).
+- Positioning is positive: what the paper does, on what evidence. No run of "we do not claim …" sentences; no concept introduced only to be denied.
+- The Introduction opens with the specific tension the paper resolves and closes with named contributions linked to sections.
+- Methods: each component's purpose precedes its procedure; the objects passed between components are named; check/revise loops have triggers and stopping rules; formulas add a decision rule or are presented as notation (M01 flags settings without purpose).
+- Explanatory sentences (design rationale, observation vs mechanism) are kept — they are not disclaimers.
+
+## G. Revision status (resubmissions)
 
 Every comment has a response; every completed-tense claim is backed by a real change; locations are verified or marked.
 
@@ -79,3 +92,12 @@ Group findings by impact:
 Each item: location, problem, why it matters, concrete fix. If something cannot be located, say which material is needed; never invent page numbers. Say what was read and what was not; a clean partial check is not a pass for the whole paper. Give no scores, acceptance probabilities or "meets SCI standard" verdicts.
 
 Before finishing: every `[MISSING: …]` has a line under 材料缺口.
+
+## Comparing versions
+
+When the user asks which of two drafts is better, or wants to merge them (typically their own draft and a generated one):
+
+- Judge per dimension (language, problem statement, structure and narrative, claim boundaries, method and architecture, information budget) and per section, with locations. Say where each version is stronger; a version that is better overall is rarely better everywhere.
+- Separate writing quality from research quality: a more detailed figure or longer method description is not a more advanced system.
+- Recommend a base text (by default the author's own draft) and list the specific passages to adopt from the other version, with the reason each one improves the base. Then revise the base in place, keeping the author's voice.
+- Never resolve a difference by turning an uncertain statement into a certain one; uncertainty is relocated (to its claim, the Limitations paragraph or the memo), not erased.

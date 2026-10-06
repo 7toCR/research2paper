@@ -77,6 +77,37 @@ class FlawedManuscript(unittest.TestCase):
         self.assertIn("5%", msg)
 
 
+class PaperLayer(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.r = run(FIXTURES / "flawed_layers.md")
+
+    def test_audit_remarks_flagged_per_line(self):
+        w06 = [f for f in self.r.findings if f.code == "W06"]
+        self.assertEqual({f.where.split()[1] for f in w06}, {"16", "24"}, cpd.format_report(self.r))
+
+    def test_boundary_budget(self):
+        w07 = [f.where for f in self.r.findings if f.code == "W07"]
+        self.assertTrue(any("Abstract" in w for w in w07))
+        self.assertTrue(any("Conclusion" in w for w in w07))
+        self.assertTrue(any("Introduction" in w for w in w07))
+
+    def test_long_marker_and_settings_without_purpose(self):
+        self.assertIn("G06", codes(self.r, "WARN"))
+        self.assertIn("M01", codes(self.r, "INFO"))
+
+    def test_limitations_paragraph_is_exempt(self):
+        text = ("## Discussion\n\nThe evidence has clear limits. The scores cannot identify the mechanism. "
+                "The checker's error rate was not measured. Results cannot be generalised to field data. "
+                "We did not compare against other planners.\n")
+        self.assertNotIn("W07", codes(run_text(text, ".md", "--mode", "section")))
+
+    def test_research_limits_are_not_audit_remarks(self):
+        text = ("## Results\n\nNo statistical test was performed on the paired outcomes. The aggregate scores "
+                "cannot show why the gain occurs; paired intermediate records would test the mechanism.\n")
+        self.assertNotIn("W06", codes(run_text(text, ".md", "--mode", "section")))
+
+
 class FlawedLatex(unittest.TestCase):
     def test_latex(self):
         r = run(FIXTURES / "flawed_paper.tex")

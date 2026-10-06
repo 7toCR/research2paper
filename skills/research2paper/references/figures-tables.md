@@ -19,6 +19,15 @@ Judge fonts, cropping, colours, legends and layout only for images you can actua
 7. **Multi-panel figures** label panels (a), (b), … and the caption describes each label used.
 8. **No reuse without disclosure.** Reusing a published figure needs a citation and, where required, permission; altering its appearance is not permission and does not remove duplicate-publication concerns. Keep the raw data behind every figure for reviewer requests.
 
+## System overview figures
+
+For a system or architecture paper, the overview figure is the reader's map of the method:
+
+- Draw components **and** the objects passed between them (shared representation, plan, record), not only a column of stage boxes. A four-box linear flow is enough only for a genuinely linear pipeline.
+- Show check-and-revise loops as a decision node with labelled return edges and the stopping condition, so the figure shows the mechanism, not just the success path.
+- Use exactly the names used in the Methods text; every node in the figure is described there, and every component in the text appears in the figure.
+- Complexity is not the goal: the figure should let a reader redraw the data flow, nothing more. Split a crowded figure into an overview and a detail panel.
+
 ## Caption pattern
 
 "Fig. 3. [What is plotted] for [conditions/groups] on [data]. (a) [panel a]; (b) [panel b]. Error bars indicate [SD/SE/CI] over [n] [runs/subjects]. [Abbreviation definitions]."

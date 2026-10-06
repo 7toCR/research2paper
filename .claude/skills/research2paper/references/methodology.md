@@ -6,13 +6,41 @@ Purpose (DR_CAN, part III): explain to the reader how the results were obtained.
 
 - **Theoretical:** problem definition, assumptions, notation, model, derivation and conditions of validity. An unfinished proof is not a proven theorem.
 - **Empirical:** subjects or data sources, inclusion/exclusion criteria, measurement, processing and analysis. Report sample sizes and statistics as given.
-- **Engineering / algorithmic:** task inputs and outputs, system or algorithm steps, implementation, training or operating settings, baselines and evaluation protocol. Separate method design from experimental setup when it helps.
+- **Engineering / algorithmic / system:** task definition (inputs, outputs, the objects passed between stages), system or algorithm steps, implementation, training or operating settings, baselines and evaluation protocol. Separate method design from experimental setup.
 
-Each step states its input, operation and output, in the order performed.
+A short task-definition paragraph first (what goes in, what comes out, the named intermediate objects), then the components, is usually the clearest order.
+
+## The method is the authors' designed procedure
+
+Describe the method from the authors' design documents, code, prompts and notes, in their voice. Questions about *which* configuration produced *which* experimental result belong to the experimental setup (with a short marker where a fact is missing) and to the memo — not as hedges spread through the method description. Do not interrupt a component's description to report what you could not confirm in the materials (see `paper-layer.md`).
+
+If the code and the design notes disagree, describe the version the authors identify as their method; if they have not said, use a marker at the affected detail and explain the discrepancy in the memo.
+
+## Purpose before procedure
+
+For each component, write in this order:
+
+1. **Purpose** — which problem it solves, why it is needed (the design rationale).
+2. **Input** — the named objects it receives.
+3. **Operation** — what it does, including the decision rule.
+4. **Output** — the named object it produces and who consumes it.
+5. **Failure handling** — checks, revisions, retries, stopping rules.
+6. **Parameters** — values, with the authors' reason when they give one.
+
+Low-level operating rules (offsets, fallbacks, character limits, thresholds) come after the rationale they serve, or in an implementation-details subsection or appendix if the journal allows. A run of specific rules with no stated purpose reads like a manual; the checker flags such paragraphs (M01, INFO). If the authors gave no reason for a parameter that a reviewer would question, keep the value and ask for the reason in the memo — do not invent one.
+
+## System and architecture papers
+
+The reader should be able to redraw the system from the text alone:
+
+- Name every object passed between components (representation, plan, record, fields) and say who produces and who consumes it.
+- For shared representations, state what they make consistent across consumers, and what goes wrong without them.
+- For check-and-revise loops, state what is checked (structure vs meaning), what triggers revision, which upstream outputs are re-checked after a change, and the stopping rule.
+- The overview figure and the text use the same names for the same objects (see `figures-tables.md`).
 
 ## Reproducibility details
 
-Check, as the study requires: data splits, preprocessing, key parameters, equipment and models, software and versions, number of repetitions, randomness (seeds), metric definitions and statistical methods. Anything not supplied becomes a marker such as `[MISSING: random seed and number of runs]`. Never infer the author's choices from "common practice" or software defaults.
+Check, as the study requires: data splits, preprocessing, key parameters, equipment and models, software and versions, number of repetitions, randomness (seeds), metric definitions and statistical methods. Anything not supplied becomes a short marker such as `[MISSING: random seed and number of runs]`. Never infer the author's choices from "common practice" or software defaults.
 
 Separate what is adopted from prior work (cite it, describe briefly) from what this paper contributes (describe fully). Give the space to details that affect the results or the contribution claim.
 
@@ -21,7 +49,8 @@ Separate what is adopted from prior work (cite it, describe briefly) from what t
 - Define every symbol, subscript and unit at first use; spell out every abbreviation at first use. For symbol-heavy papers build a Nomenclature table (symbol, unit, meaning) at the start of writing, as the notes recommend.
 - One object, one symbol, one name, one unit throughout; one symbol never silently means two quantities. Use subscripts where confusion is likely.
 - Write equations in LaTeX; number displayed equations that are referred to and refer to them by number ("Substituting Eq. (3) into Eq. (5) gives …"). Keep existing labels; if a renumbering is unavoidable, update every reference.
-- If you find a symbol clash, a dimensional inconsistency or a missing derivation step, point to its location. Do not "fix" it into a plausible-looking formula without evidence.
+- An equation must add something the prose does not. A line such as $Y = \mathcal{M}(X_1, X_2 \mid S)$ only names a step; follow it with the decision rule of $\mathcal{M}$, or present it as notation and explain the mechanism in words. Do not let a compact formula stand in for an unexplained mechanism.
+- If you find a symbol clash, a dimensional inconsistency or a missing derivation step, point to its location in the memo. Do not "fix" it into a plausible-looking formula without evidence.
 
 Symbol and equation errors affect acceptance: reviewers check derivations, and inconsistent notation makes a paper unreadable.
 
@@ -35,4 +64,4 @@ Completed work: past tense. Planned work: future or conditional tense, clearly l
 
 ## Self-check
 
-Could another researcher follow the described path? Was every described step actually performed? Does every metric, dataset or condition used in Results have its origin here? Does every marker have a line in the notes?
+Could another researcher redraw the pipeline and follow the described path? Does each component say why it exists before how it works? Is every described step part of the authors' documented method (plans labelled as plans)? Does every metric, dataset or condition used in Results have its origin here? Is every verification remark in the memo rather than the text, and does every marker have a line there?

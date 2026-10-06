@@ -42,6 +42,7 @@ All of these yield to the journal's guidelines, the field and the article type.
 - **"No duplicate figure submission; cite if reused"** does not become "modify slightly and reuse": reuse needs citation, permission where required, and compliance with journal policy.
 - **Arguing with reviewers.** Using other reviewers' positive comments is allowed as context, but every point still needs a direct, evidence-based answer.
 - **Evidence boundaries** (gap markers, evidence classes, citation-check levels, real revision status, teaching-example isolation) are added to stop drafts from going beyond the material.
+- **Paper layer and boundary budget** (`paper-layer.md`) were added after a side-by-side review of an author-written paper and a draft this skill produced from the same material. The generated draft was careful about evidence but mixed audit and drafting remarks into the paper, stacked negative positioning sentences, spent much of the Abstract and Conclusion on limitations, and described the method less completely than the author. It also had real strengths worth keeping — a concrete opening tension, explicit design rationale, and result-level distinctions between observation and mechanism — which are now written into `introduction.md`, `methodology.md` and `results-discussion.md` as patterns. DR_CAN's notes already point the same way: the Conclusion "强调所做内容的 Contribution", the Abstract "摘取文章要点", and Methods explain "如何得到这一结果".
 
 ## Teaching examples (never research facts)
 

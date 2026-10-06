@@ -11,7 +11,7 @@
 
 ## 2. 场景集
 
-[`cases.json`](cases.json) 有 12 个人工构造的场景，全部为虚构材料，覆盖最容易出错的情况：
+[`cases.json`](cases.json) 有 17 个人工构造的场景，全部为虚构材料，覆盖最容易出错的情况：
 
 | 场景 | 主要考察 |
 |---|---|
@@ -24,8 +24,13 @@
 | `methods-subsection-only`、`standalone-methods-prompt` | 只改指定小节；单份 Prompt 不依赖其他文件 |
 | `teaching-example-isolation` | DR_CAN 课上的例子不进入论文 |
 | `pre-submission-check` | 对 [问题稿件](../tests/fixtures/flawed_manuscript.md) 找出关键问题，不给评分 |
+| `audit-remarks-stay-in-notes` | 材料核查与写作过程说明只进中文说明，不进论文正文 |
+| `abstract-limitation-budget` | 摘要里的限制最多一句，其余放进 Discussion |
+| `positioning-positive-with-contributions` | 正面定位、不堆叠“我们不声称”，以对应章节的贡献收束 |
+| `method-purpose-before-procedure` | 组件先写设计目的，再写规则、修订与停止条件 |
+| `revise-author-draft-as-base` | 以作者自己的段落为底稿修改，保留引用与术语 |
 
-每个场景写明适用入口（`entries`）、用户提示（`prompt`）、输入材料（`input` 或 `input_file`）、正则断言（`must_match` / `must_not_match`）、是否运行检查脚本（`checker`）以及需要人工判断的要点（`manual`）。
+每个场景写明适用入口（`entries`）、用户提示（`prompt`）、输入材料（`input` 或 `input_file`）、正则断言（`must_match` / `must_not_match` / `max_count`，可按条设置 `scope`: `body`／`notes`／`all`）、是否运行检查脚本（`checker`，其中 `forbid_codes` 列出不允许出现的检查代码）以及需要人工判断的要点（`manual`）。
 
 ## 3. 运行与保存
 
@@ -44,19 +49,19 @@ python evals/grade_outputs.py --case results-80-84 --version new --json evals/re
 ```
 
 - 断言默认只作用于英文正文（第一个“主要修改／材料缺口／待核验事项”标题之前），避免中文说明里的“不能写 significant”被误判。
-- 设置了 `checker` 的场景会对正文运行 `check_paper_draft.py`，出现 ERROR 即不通过。
+- 设置了 `checker` 的场景会对输出运行 `check_paper_draft.py`，出现 ERROR 或 `forbid_codes` 中的代码即不通过。
 - 断言只能发现编造数字、虚假完成式、越界改写、百分点算错这类硬伤，通过不代表写得好。
 
 **质量评审（人工或模型盲评）**
 
-- 按 [`rubric.md`](rubric.md) 的 9 个维度做成对盲评：A/B 随机命名，用模型评审时交换位置各评一次。
+- 按 [`rubric.md`](rubric.md) 的 11 个维度做成对盲评：A/B 随机命名，用模型评审时交换位置各评一次。
 - 每个场景取新旧各一次运行配对，至少评 3 对。
 
 ## 5. 结论规则
 
 **可以说“新版更好”，需要同时满足：**
 
-- 维度 1（证据忠实度）、2（缺口处理）、4（数值与统计表述）上不劣于旧版：多数配对中新版“更好或持平”的次数不少于“更差”的次数。
+- 维度 1（证据忠实度）、2（缺口处理）、4（数值与统计表述）、10（叙述层级）上不劣于旧版：多数配对中新版“更好或持平”的次数不少于“更差”的次数。
 - 其余维度中，新版在多数场景上胜出的维度多于落败的维度。
 - 自动断言通过率不低于旧版。
 

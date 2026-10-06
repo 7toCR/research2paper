@@ -1,6 +1,6 @@
 {
   "skill_name": "research2paper",
-  "notes": "全部输入为人工构造的验收材料，不代表真实实验、文献或期刊政策。模型输出保存到 evals/runs/<case-id>/<version>/run-<n>/output.md（runs/ 不进仓库）。must_match / must_not_match 默认只作用于英文正文（第一个“主要修改／材料缺口／待核验事项”标题之前），scope 为 all 时作用于全文。",
+  "notes": "全部输入为人工构造的验收材料，不代表真实实验、文献或期刊政策。模型输出保存到 evals/runs/<case-id>/<version>/run-<n>/output.md（runs/ 不进仓库）。断言默认只作用于英文正文（第一个“主要修改／材料缺口／待核验事项”标题之前）；单条断言可设 scope 为 notes（只看中文说明）或 all（全文），max_count 限制匹配次数，checker.forbid_codes 列出不允许出现的检查代码。",
   "cases": [
     {
       "id": "results-sufficient",
@@ -483,6 +483,220 @@
       "manual": [
         "按优先解决／建议修改／尚未验证组织",
         "不重写全文"
+      ]
+    },
+    {
+      "id": "audit-remarks-stay-in-notes",
+      "entries": [
+        "flash",
+        "pro",
+        "methodology",
+        "skill"
+      ],
+      "prompt": "写 Methods 和 Experimental setup 两节。",
+      "input": "系统：把交通监控片段写成事故报告的三段式流程。① 事件抽取器把片段转成共享事件记录（6 个字段：时间、地点、参与方、动作、后果、不确定项），设计目的：让规划器和写作器使用同一份事实，避免各自理解片段而互相矛盾。② 报告规划器根据事件记录生成报告提纲（段落顺序、每段要点）。③ 写作器按提纲写报告；一致性检查器逐句对照事件记录，不一致时退回写作器修订，最多 2 轮，第 2 轮仍不一致则标记人工复核。实验：120 条合成片段；事实一致性（0–1，越高越好）无共享记录 0.71，有共享记录 0.78；关闭检查器 0.74。 材料情况：实验表没有记录“关闭检查器”那一行用的是哪个写作模型；代码仓库里的提示词与设计文档的统一提示词有两处不同；这次没有重新运行实验或重算分数。",
+      "must_match": [
+        {
+          "pattern": "\\[MISSING:",
+          "why": "写作模型未知处应有简短缺口标记"
+        },
+        {
+          "pattern": "待核验|材料缺口",
+          "why": "核查情况应写进中文说明",
+          "scope": "notes"
+        },
+        {
+          "pattern": "提示词|prompt",
+          "why": "提示词差异应在中文说明中交代",
+          "scope": "notes"
+        }
+      ],
+      "must_not_match": [
+        {
+          "pattern": "this draft|writing (?:trial|exercise)|(?:supplied|provided) materials?|could not be confirmed|work(?:ing)? tree|not (?:re-?computed|re-?run)|repository",
+          "why": "核查与写作过程说明不应进入论文正文"
+        }
+      ],
+      "checker": {
+        "mode": "section",
+        "max_errors": 0,
+        "forbid_codes": [
+          "W06",
+          "G06"
+        ]
+      },
+      "manual": [
+        "方法部分按“目的 → 输入 → 操作 → 输出 → 失败处理”描述三个组件",
+        "检查器的退回与停止规则写清楚"
+      ]
+    },
+    {
+      "id": "abstract-limitation-budget",
+      "entries": [
+        "conclusion-abstract-title",
+        "flash",
+        "pro",
+        "skill"
+      ],
+      "prompt": "根据这些材料写摘要。局限我都列出来了。",
+      "input": "系统：把交通监控片段写成事故报告的三段式流程。① 事件抽取器把片段转成共享事件记录（6 个字段：时间、地点、参与方、动作、后果、不确定项），设计目的：让规划器和写作器使用同一份事实，避免各自理解片段而互相矛盾。② 报告规划器根据事件记录生成报告提纲（段落顺序、每段要点）。③ 写作器按提纲写报告；一致性检查器逐句对照事件记录，不一致时退回写作器修订，最多 2 轮，第 2 轮仍不一致则标记人工复核。实验：120 条合成片段；事实一致性（0–1，越高越好）无共享记录 0.71，有共享记录 0.78；关闭检查器 0.74。 局限：只用合成片段；没有做读者主观评价；关闭检查器那一行的写作模型未记录，归因有限；没有测量检查器自身的误报率。",
+      "must_match": [
+        {
+          "pattern": "0\\.71",
+          "why": "关键结果带数值"
+        },
+        {
+          "pattern": "0\\.78",
+          "why": "关键结果带数值"
+        }
+      ],
+      "must_not_match": [],
+      "max_count": [
+        {
+          "pattern": "\\b(?:cannot|not (?:yet )?(?:been )?(?:tested|verified|evaluated|measured|recorded)|unverified|untested|limitations?|limited to)\\b",
+          "max": 1,
+          "why": "摘要里的限制最多一句"
+        }
+      ],
+      "checker": {
+        "mode": "section",
+        "max_errors": 0,
+        "forbid_codes": [
+          "W06",
+          "W07"
+        ]
+      },
+      "manual": [
+        "其余局限应在中文说明中提示放进 Discussion 的 Limitations 段"
+      ]
+    },
+    {
+      "id": "positioning-positive-with-contributions",
+      "entries": [
+        "introduction",
+        "flash",
+        "pro",
+        "skill"
+      ],
+      "prompt": "写引言最后两段：相关工作的定位和本文贡献。",
+      "input": "系统：把交通监控片段写成事故报告的三段式流程。① 事件抽取器把片段转成共享事件记录（6 个字段：时间、地点、参与方、动作、后果、不确定项），设计目的：让规划器和写作器使用同一份事实，避免各自理解片段而互相矛盾。② 报告规划器根据事件记录生成报告提纲（段落顺序、每段要点）。③ 写作器按提纲写报告；一致性检查器逐句对照事件记录，不一致时退回写作器修订，最多 2 轮，第 2 轮仍不一致则标记人工复核。实验：120 条合成片段；事实一致性（0–1，越高越好）无共享记录 0.71，有共享记录 0.78；关闭检查器 0.74。 相关工作：[1] 端到端视频描述，直接从片段生成文字；[2] 先检测事件再填模板；[3] 生成后用检索结果做事实校对。我们没有和 [1]–[3] 做实验比较。",
+      "must_match": [
+        {
+          "pattern": "contribution",
+          "why": "以贡献收束"
+        },
+        {
+          "pattern": "Section\\s*\\d|Sec\\.\\s*\\d",
+          "why": "贡献对应到章节"
+        }
+      ],
+      "must_not_match": [
+        {
+          "pattern": "first|novel|state-of-the-art",
+          "why": "没有检索证据"
+        }
+      ],
+      "max_count": [
+        {
+          "pattern": "\\bwe (?:do|did) not\\b",
+          "max": 1,
+          "why": "不堆叠否定式定位"
+        }
+      ],
+      "checker": {
+        "mode": "section",
+        "max_errors": 0,
+        "forbid_codes": [
+          "W06",
+          "W07"
+        ]
+      },
+      "manual": [
+        "每个设计选择都说明回应了哪类已有方法的局限",
+        "未做实证比较的事实在中文说明或 Limitations 中交代一次即可"
+      ]
+    },
+    {
+      "id": "method-purpose-before-procedure",
+      "entries": [
+        "methodology",
+        "flash",
+        "skill"
+      ],
+      "prompt": "只写一致性检查器这一小节。",
+      "input": "系统：把交通监控片段写成事故报告的三段式流程。① 事件抽取器把片段转成共享事件记录（6 个字段：时间、地点、参与方、动作、后果、不确定项），设计目的：让规划器和写作器使用同一份事实，避免各自理解片段而互相矛盾。② 报告规划器根据事件记录生成报告提纲（段落顺序、每段要点）。③ 写作器按提纲写报告；一致性检查器逐句对照事件记录，不一致时退回写作器修订，最多 2 轮，第 2 轮仍不一致则标记人工复核。实验：120 条合成片段；事实一致性（0–1，越高越好）无共享记录 0.71，有共享记录 0.78；关闭检查器 0.74。 检查器细节：逐句与事件记录比对参与方和动作；句子提到记录中没有的参与方即判不一致；最多 2 轮修订，第 2 轮仍不一致则标记人工复核。设计理由：报告最常见的错误是张冠李戴（把动作安到错误的参与方上）。",
+      "must_match": [
+        {
+          "pattern": "\\b2\\b|two",
+          "why": "保留轮次上限"
+        },
+        {
+          "pattern": "manual review|human review|人工复核",
+          "why": "保留停止规则"
+        }
+      ],
+      "must_not_match": [
+        {
+          "pattern": "(?m)^#+\\s*(?:Introduction|Results|Conclusions?)\\b",
+          "why": "超出范围"
+        }
+      ],
+      "checker": {
+        "mode": "section",
+        "max_errors": 0,
+        "forbid_codes": [
+          "W06",
+          "G06"
+        ]
+      },
+      "manual": [
+        "先写目的（防止参与方与动作错配），再写比对规则、修订与停止条件"
+      ]
+    },
+    {
+      "id": "revise-author-draft-as-base",
+      "entries": [
+        "flash",
+        "pro",
+        "skill"
+      ],
+      "prompt": "这是我自己写的引言第一段，帮我改得更好。",
+      "input": "作者原段落：Traffic incident reports are important for traffic management. With the development of deep learning, video understanding has made great progress, and many methods have been proposed for video captioning [1], [2]. However, generating reports that are faithful to the clip is still challenging. In this paper, we propose an event-grounded pipeline. 系统：把交通监控片段写成事故报告的三段式流程。① 事件抽取器把片段转成共享事件记录（6 个字段：时间、地点、参与方、动作、后果、不确定项），设计目的：让规划器和写作器使用同一份事实，避免各自理解片段而互相矛盾。② 报告规划器根据事件记录生成报告提纲（段落顺序、每段要点）。③ 写作器按提纲写报告；一致性检查器逐句对照事件记录，不一致时退回写作器修订，最多 2 轮，第 2 轮仍不一致则标记人工复核。实验：120 条合成片段；事实一致性（0–1，越高越好）无共享记录 0.71，有共享记录 0.78；关闭检查器 0.74。",
+      "must_match": [
+        {
+          "pattern": "\\[1\\]",
+          "why": "保留作者引用编号"
+        },
+        {
+          "pattern": "event",
+          "why": "保留作者术语"
+        },
+        {
+          "pattern": "主要修改",
+          "why": "列出改动",
+          "scope": "notes"
+        }
+      ],
+      "must_not_match": [
+        {
+          "pattern": "first|novel|state-of-the-art",
+          "why": "不添加无依据主张"
+        },
+        {
+          "pattern": "(?m)^#+\\s*(?:Methods?|Results|Conclusions?)\\b",
+          "why": "只改这一段"
+        }
+      ],
+      "checker": {
+        "mode": "section",
+        "max_errors": 0,
+        "forbid_codes": [
+          "W06"
+        ]
+      },
+      "manual": [
+        "以作者段落为底稿修改，而不是另写一段",
+        "开头改为具体张力：读起来通顺的报告也可能把动作安错参与方"
       ]
     }
   ]

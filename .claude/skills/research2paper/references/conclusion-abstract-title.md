@@ -8,7 +8,8 @@ Write them last, from the finished body (DR_CAN, part VI). When all three are re
 - Summarise the findings (discoveries), their extension and future plans; emphasise the contribution and make it answer the problem raised in the Introduction.
 - Do not repeat the Results or list every metric again; do not introduce new results, numbers or claims.
 - **Rewrite, do not copy.** The notes suggest synonym tools for rewording; for a research paper, rewriting means re-organising the argument at a higher level. Do not swap technical terms for synonyms — terminology must stay stable.
-- State applicability limits and limitations when they matter.
+- State applicability limits and the main limitation when they matter — in at most two sentences together with future work.
+- End on the paper's main line (its core objects and what the evidence showed), not on a list of checks still to be done. Verification, provenance and data-linkage to-dos are memo items (see `paper-layer.md`, checker W07).
 - Length: the notes suggest one or two paragraphs; the journal and the paper decide, and some journals have no separate Conclusion.
 
 ## Abstract
@@ -26,6 +27,7 @@ Moves 1 and 4 carry importance and contribution; 2 and 3 carry what was done.
 
 - Structure, length and headings follow the journal (structured abstracts use its labels exactly). Without a guide, write one concise paragraph; do not force "three background sentences".
 - Nothing that is not in the body: no new numbers, claims or citations; avoid undefined abbreviations.
+- **Limitation budget:** at most one sentence (better, one clause) on scope or the main limitation. An abstract that spends several sentences on attribution limits, missing protocols and claims it cannot make leaves no room for the contribution. The full limitations live in the Discussion (checker W07).
 - When the user gives a word limit, count the words and say how you counted.
 
 ## Title

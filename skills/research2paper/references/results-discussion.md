@@ -38,6 +38,15 @@ Correlation, a single group or a single baseline rarely confirms a causal mechan
 
 Report counterexamples, failure conditions and negative or non-significant results. An anomaly can come from the method, the data, the measurement or chance; name a cause only with evidence. Do not explain an anomaly away as noise or user error without support.
 
+## Where boundaries go
+
+Keep the distinction between what was observed and what explains it — that is good writing, not hedging — but place each boundary once (see `paper-layer.md`):
+
+- **At the result it limits.** "Removing [component] lowered [metric] from [a] to [b] (Table 3). The aggregate scores cannot show why; comparing the paired intermediate outputs would test whether [mechanism] is responsible."
+- **Measured vs claimed function.** A better score with a component enabled is not a measurement of that component's own reliability (its error-detection rate, false-acceptance rate). Say so once where the ablation is discussed, if the paper's claims depend on it.
+- **One Limitations paragraph** in the Discussion collects the study-level limits (data, conditions, attribution across configurations, untested settings). Do not repeat them in every paragraph.
+- **Provenance gaps** (which configuration produced a table row) are markers in the setup or table where the fact is needed; the explanation goes to the memo, not into the discussion text.
+
 ## Sentence patterns
 
 - "As shown in Fig. 3a, [quantity] decreased from [a] to [b] when [condition], whereas [baseline] remained [c]."
@@ -46,6 +55,6 @@ Report counterexamples, failure conditions and negative or non-significant resul
 
 ## Output and self-check
 
-Deliver English Results/Discussion that detail the findings the contribution depends on. Working from author-supplied summaries only? Say in the notes: "based on the supplied summary results; raw statistics not recomputed".
+Deliver English Results/Discussion that detail the findings the contribution depends on. Working from author-supplied summaries only? Say so in the memo (待核验事项: "依据作者提供的汇总结果，未复算原始统计") — never in the paper text.
 
-Check: every conclusion traces to a result or a citation; every cited figure/table exists; unfavourable results are present; no speculation upgraded to cause or generality; future work is not written as done.
+Check: every conclusion traces to a result or a citation; every cited figure/table exists; unfavourable results are present; no speculation upgraded to cause or generality; future work is not written as done; each limitation appears once at its claim and once in the Limitations paragraph, not in every paragraph.

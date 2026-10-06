@@ -21,6 +21,9 @@ reports the defects that are easy to miss when re-reading your own draft:
   percentages, leakage of the DR_CAN teaching examples, numbers glued to units;
 - consistency: numbers in the Abstract/Conclusion that the body never states,
   Conclusion/Abstract sentences copied from Results/Discussion;
+- paper layer: drafting/verification remarks inside the paper text, boundary
+  overload (disclaimer runs, an Abstract or Conclusion spent on limitations),
+  over-long gap markers, Methods settings listed without a stated purpose;
 - response letters: completed-tense claims next to missing changes, missing
   Comment/Response/Changes/Location fields, skipped comment numbers,
   thanks-only responses, other reviewers' agreement used as the answer.
@@ -552,6 +555,9 @@ def check_gaps(doc: Document, report: Report, notes_text: str | None) -> list[st
             if not m.group("colon") or body.lower().strip(" .") in VAGUE_MISSING or len(body) < 4:
                 report.error("G01", where(ln), f"Gap marker '{m.group(0)}' is empty or vague; write "
                                                f"[MISSING: <exactly what the author must supply>].")
+            elif len(body.split()) > 15:
+                report.warn("G06", where(ln), f"Gap marker has {len(body.split())} words: name the missing item "
+                                              f"only; why it is missing and what was searched go in the memo.")
             markers.append((body, ln))
         scan = MISSING_RE.sub(" ", ln.raw)
         for m in PLACEHOLDER_RE.finditer(scan):
@@ -1155,6 +1161,99 @@ def check_wording(doc: Document, report: Report, mode: str, masked: set[int]) ->
 
 
 # --------------------------------------------------------------------------- #
+# Checks: paper layer (drafting remarks, boundary budget, purpose before procedure)
+# --------------------------------------------------------------------------- #
+
+AUDIT_RE = re.compile(
+    r"\b(?:this|the present|the current) (?:draft|write-?up|writing (?:trial|exercise|session|process))\b|"
+    r"\bwriting (?:trial|exercise)\b|"
+    r"\b(?:supplied|provided|available|submitted|given) (?:materials?|records?|files?|notes|logs|documents)\b|"
+    r"\bauthor-?(?:supplied|provided|reported)\b|"
+    r"\b(?:could|can) ?not be (?:confirmed|verified|determined|established|checked) (?:from|in|against) (?:the )?"
+    r"(?:\w+ )?(?:materials?|records?|files?|logs?|repository|code(?:base)?|notes|documents)\b|"
+    r"\b(?:could not|cannot|were unable to|was not possible to) (?:confirm|verify|determine|establish|check) "
+    r"(?:from|in|against) (?:the )?(?:\w+ )?(?:materials?|records?|files?|logs?|repository|code(?:base)?|notes|"
+    r"documents)\b|"
+    r"\bnot (?:re-?computed|re-?run|regenerated|re-?generated|re-?executed) (?:here|in this|for this)\b|"
+    r"\b(?:working|work) tree\b|\buncommitted changes?\b|"
+    r"\bin this (?:draft|writing|write-?up|version of the manuscript)\b|"
+    r"\b(?:the|these|this) (?:materials?|records|logs) (?:do|does|did) not (?:state|specify|record|show|include|"
+    r"indicate)\b|"
+    r"\b(?:it is|it was|remains) unclear from the (?:materials?|records?|files?|logs?)\b|"
+    r"本稿|本次写作|写作试验|提供的材料|所给材料|素材中|工作树",
+    re.I)
+DISCLAIM_RE = re.compile(
+    r"\bwe (?:do|did) not (?:claim|treat|assert|suggest|argue|compare|evaluate|measure|test|establish|examine|"
+    r"address|consider|attempt|investigate)\b|"
+    r"\b(?:does|do|did|can|could|should|would) not (?:establish|imply|show|prove|demonstrate|measure|indicate|"
+    r"guarantee|support|allow|identify|determine|isolate)\b|"
+    r"\bcannot (?:establish|be attributed|be established|identify|determine|show|confirm|rule out|separate|"
+    r"distinguish|isolate|be generali[sz]ed)\b|"
+    r"\bis not intended to\b|\bshould not be (?:interpreted|read|taken|understood)\b|"
+    r"\bare not (?:claimed|intended|evaluated|measured)\b|\bno claim is made\b|"
+    r"\b(?:beyond|outside) the scope\b|"
+    r"\bremains? (?:unverified|untested|unknown|unmeasured|to be (?:verified|tested|confirmed|linked|established))\b|"
+    r"\b(?:has|have|was|were) not (?:yet )?(?:been )?(?:tested|verified|evaluated|measured|confirmed|linked)\b|"
+    r"不能证明|无法确定|尚未验证|并不意味着|不能说明",
+    re.I)
+LIMIT_HEAD_RE = re.compile(r"\blimitations?\b|\blimits\b|\bcaveats?\b|threats? to validity|局限", re.I)
+RATIONALE_RE = re.compile(
+    r"\b(?:so that|because|since|in order to|so as to|ensur\w*|to (?:avoid|prevent|keep|ensure|reduce|limit|"
+    r"preserve|allow|make|balance|match|capture|suppress|guarantee)|aim\w*|purpose|goal|motivat\w*|rationale|"
+    r"designed to|intended to|needed to|required to|which (?:keeps|makes|lets|allows|prevents|avoids)|"
+    r"otherwise|trade-?off)\b|为了|以便|从而|避免",
+    re.I)
+SETTING_NUM_RE = re.compile(r"(?<![\w.\-\[])\d+(?:\.\d+)?(?![\w\]])")
+
+
+def check_paper_layer(doc: Document, report: Report, mode: str, masked: set[int]) -> None:
+    excluded = {"references", "notes", "latex_preamble", "nomenclature", "acknowledgements", "yaml"}
+    body = [ln for ln in doc.lines if ln.kind not in excluded and ln.no not in masked]
+    for ln in body:
+        phrases = [m.group(0) for m in AUDIT_RE.finditer(MISSING_RE.sub(" ", ln.prose))]
+        if phrases:
+            quoted = ", ".join(f"'{p}'" for p in dict.fromkeys(phrases))
+            report.warn("W06", where(ln), f"Drafting/verification remark in the paper text ({quoted}): what was "
+                                          f"supplied, checked or could not be confirmed belongs in the memo "
+                                          f"(待核验事项), not in the paper.")
+    if mode == "response":
+        return
+
+    def disclaim_sentences(lines: list[Line]) -> list[str]:
+        out = []
+        for para in paragraphs(lines):
+            for sent in sentences(" ".join(ln.prose for ln in para)):
+                if DISCLAIM_RE.search(MISSING_RE.sub(" ", sent)):
+                    out.append(sent)
+        return out
+
+    for kind, label, limit in (("abstract", "Abstract", 2), ("conclusion", "Conclusion", 2)):
+        lines = [ln for ln in body if ln.kind == kind]
+        found = disclaim_sentences(lines)
+        if len(found) >= limit and lines:
+            report.warn("W07", where(lines[0]), f"{label} has {len(found)} limitation/disclaimer sentences "
+                                                f"('{found[0][:60]}…'); keep at most one there and gather the "
+                                                f"rest in the Discussion's Limitations paragraph.")
+    for para in paragraphs([ln for ln in body if ln.kind not in ("abstract", "conclusion")]):
+        if LIMIT_HEAD_RE.search(para[0].section):
+            continue
+        sents = sentences(" ".join(ln.prose for ln in para))
+        if not sents or LIMIT_HEAD_RE.search(sents[0]):
+            continue  # the consolidated Limitations paragraph is where boundaries belong
+        found = [x for x in sents if DISCLAIM_RE.search(MISSING_RE.sub(" ", x))]
+        if len(found) >= 3:
+            report.warn("W07", where(para[0]), f"{len(found)} disclaimer sentences in one paragraph; state what "
+                                               f"the paper does, keep each boundary once at its claim, and gather "
+                                               f"the rest in a Limitations paragraph.")
+    for para in paragraphs([ln for ln in body if ln.kind == "methods" and not ln.caption]):
+        text = MISSING_RE.sub(" ", " ".join(ln.prose for ln in para))
+        text = re.sub(r"\b(?:Figs?\.|Figures?|Tables?|Eqs?\.|Equations?|Sections?|Sec\.)\s*\(?\d+\)?", " ", text)
+        if len(SETTING_NUM_RE.findall(text)) >= 4 and not RATIONALE_RE.search(text):
+            report.info("M01", where(para[0]), "Several settings in this Methods paragraph but no stated purpose; "
+                                               "say why the component or rule exists before listing its values.")
+
+
+# --------------------------------------------------------------------------- #
 # Checks: consistency between Abstract/Conclusion and body
 # --------------------------------------------------------------------------- #
 
@@ -1368,6 +1467,7 @@ def run_checks(doc: Document, args: argparse.Namespace, notes_text: str | None =
     if mode == "response":
         masked = check_response(doc, report)
         check_wording(doc, report, mode, masked)
+        check_paper_layer(doc, report, mode, masked)
         return report
     if mode == "manuscript":
         check_structure(doc, report, args)
@@ -1378,6 +1478,7 @@ def run_checks(doc: Document, args: argparse.Namespace, notes_text: str | None =
     check_citations(doc, report, args.bib)
     check_acronyms(doc, report)
     check_wording(doc, report, mode, masked)
+    check_paper_layer(doc, report, mode, masked)
     if mode == "manuscript":
         check_consistency(doc, report)
     return report
