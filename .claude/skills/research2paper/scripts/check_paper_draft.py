@@ -165,6 +165,7 @@ class Line:
     section: str = ""  # heading text of the enclosing section
     heading: bool = False
     caption: bool = False
+    src: str = ""      # "file line N" when the line comes from an \input/\include file
 
 
 @dataclass
@@ -179,6 +180,13 @@ class Document:
     bib_keys: set[str] | None = None
     bib_missing_year: list[str] = field(default_factory=list)
     has_proof_context: bool = False
+    origins: list[str] | None = None  # per flattened line: where it came from (multi-file LaTeX)
+    missing_inputs: list[tuple[str, int]] = field(default_factory=list)
+
+    def loc(self, no: int | None) -> str:
+        if no is not None and self.origins and 0 < no <= len(self.origins):
+            return self.origins[no - 1]
+        return f"line {no}"
 
     def text_of(self, kinds: set[str] | None = None, exclude: set[str] | None = None,
                 prose: bool = True, skip_headings: bool = True) -> list[Line]:
@@ -202,7 +210,7 @@ def where(ln: Line | None) -> str:
         return "-"
     name = ln.section if len(ln.section) <= 28 else ln.section[:27] + "…"
     sec = f" [{name}]" if name else ""
-    return f"line {ln.no}{sec}"
+    return f"{ln.src or f'line {ln.no}'}{sec}"
 
 
 # ---------------------------- readers ------------------------------------- #
@@ -283,12 +291,54 @@ def strip_tex_comment(s: str) -> str:
 
 # ---------------------------- parsing ------------------------------------- #
 
+TEX_INPUT_RE = re.compile(r"\\(?:input|include|subfile)\s*\{([^}]+)\}")
+
+
+def read_tex_tree(main: Path) -> tuple[list[str], list[str], list[tuple[str, int]]]:
+    r"""Inline \input, \include and \subfile files, resolved against the main file's folder as LaTeX does.
+
+    Returns the flattened lines, the origin of each line ("sections/methods.tex line 12"; lines of
+    the main file keep "line N") and the inputs that could not be found (name, flattened line).
+    """
+    main = main.resolve()
+    root = main.parent
+    out: list[str] = []
+    origins: list[str] = []
+    missing: list[tuple[str, int]] = []
+
+    def visit(path: Path, stack: tuple[Path, ...]) -> None:
+        rel = path.relative_to(root).as_posix() if path.is_relative_to(root) else path.name
+        for no, s in enumerate(path.read_text(encoding="utf-8-sig", errors="replace").splitlines(), start=1):
+            out.append(s)
+            origins.append(f"line {no}" if path == main else f"{rel} line {no}")
+            for m in TEX_INPUT_RE.finditer(strip_tex_comment(s)):
+                name = m.group(1).strip()
+                child = root / name
+                if not child.suffix or not child.exists():
+                    child = child.with_name(child.name + ".tex") if not child.name.endswith(".tex") else child
+                child = child.resolve()
+                if not child.exists():
+                    missing.append((name, len(out)))
+                elif child not in stack and len(stack) < 10:
+                    visit(child, stack + (child,))
+
+    visit(main, (main,))
+    return out, origins, missing
+
+
 def load_document(path: Path, fmt: str | None = None) -> Document:
     suffix = path.suffix.lower()
     fmt = fmt or {".tex": "tex", ".md": "md", ".markdown": "md", ".docx": "docx"}.get(suffix, "txt")
+    origins: list[str] | None = None
+    missing: list[tuple[str, int]] = []
     if fmt == "docx":
         raw = read_docx(path)
         fmt_eff = "md"
+    elif fmt == "tex":
+        raw, origins, missing = read_tex_tree(path)
+        fmt_eff = fmt
+        if not any(" line " in o for o in origins):
+            origins = None  # nothing was inlined: plain "line N" positions
     else:
         raw = path.read_text(encoding="utf-8-sig", errors="replace").splitlines()
         fmt_eff = fmt
@@ -297,6 +347,12 @@ def load_document(path: Path, fmt: str | None = None) -> Document:
         fmt_eff = "md"
     doc = parse_tex(path, raw) if fmt_eff == "tex" else parse_md(path, raw)
     doc.fmt = fmt
+    doc.missing_inputs = missing
+    if origins:
+        doc.origins = origins
+        for ln in doc.lines:
+            if origins[ln.no - 1] != f"line {ln.no}":
+                ln.src = origins[ln.no - 1]
     return doc
 
 
@@ -571,7 +627,7 @@ def check_gaps(doc: Document, report: Report, notes_text: str | None) -> list[st
             report.warn("G02", where(ln), f"Non-standard placeholder '{m.group(0)}'; use "
                                           f"[MISSING: specific information] so gaps are tracked.")
     if markers:
-        listing = "; ".join(f"line {ln.no}: {b[:60]}" for b, ln in markers[:12])
+        listing = "; ".join(f"{ln.src or f'line {ln.no}'}: {b[:60]}" for b, ln in markers[:12])
         more = f"; … {len(markers) - 12} more" if len(markers) > 12 else ""
         report.info("G03", "-", f"{len(markers)} gap marker(s) — {listing}{more}")
         in_front = [(b, ln) for b, ln in markers if ln.kind in ("abstract", "title")]
@@ -673,7 +729,7 @@ def check_structure(doc: Document, report: Report, args: argparse.Namespace) -> 
     if doc.title:
         n = word_count(doc.title)
         if args.title_words and n > args.title_words:
-            report.error("S05", f"line {doc.title_line}", f"Title has {n} words; limit is {args.title_words}.")
+            report.error("S05", doc.loc(doc.title_line), f"Title has {n} words; limit is {args.title_words}.")
 
 
 # --------------------------------------------------------------------------- #
@@ -877,10 +933,10 @@ def check_latex_labels(doc: Document, report: Report) -> None:
     referenced = {k for k, _ in doc.label_refs}
     for key, line in doc.label_refs:
         if key not in doc.labels:
-            report.error("L01", f"line {line}", f"\\ref{{{key}}} points to an undefined label.")
+            report.error("L01", doc.loc(line), f"\\ref{{{key}}} points to an undefined label.")
     for key, line in doc.labels.items():
         if re.match(r"(?:fig|tab|table|figure)[:_-]", key, re.I) and key not in referenced:
-            report.warn("L02", f"line {line}", f"Label '{key}' is never referenced; every figure/table should be "
+            report.warn("L02", doc.loc(line), f"Label '{key}' is never referenced; every figure/table should be "
                                                f"cited in the text.")
     for ln in doc.lines:
         if ln.kind in ("references", "notes", "latex_preamble"):
@@ -1160,6 +1216,11 @@ def check_wording(doc: Document, report: Report, mode: str, masked: set[int]) ->
                 continue
             if re.search(r"\b(?:not|no|without|untested|cannot|neither|nor|whether)\b|未|没有", sent[:m.start()], re.I):
                 continue  # "has not been tested for significance" is the honest statement
+            if m.group(0).lower().endswith("significance") and re.match(
+                    r"\W*(?:\w+\s+){0,4}?(?:was|were|is|are|has|have|had)\s+(?:not|never)\s+(?:been\s+)?"
+                    r"(?:assessed|tested|evaluated|examined|established|computed|determined|analy[sz]ed|performed)\b",
+                    sent[m.end():], re.I):
+                continue  # "statistical significance was not assessed" says the same thing
             ln = next((ln for ln in para if SIGNIF_RE.search(ln.prose)), para[0])
             report.warn("W02", where(ln), "'significant(ly)' without a statistical test in this paragraph: report "
                                           "the test (p-value, CI) or use 'substantially'/'markedly' with the numbers.")
@@ -1574,6 +1635,8 @@ def run_checks(doc: Document, args: argparse.Namespace, notes_text: str | None =
     raw_all = "\n".join(ln.raw for ln in doc.lines)
     doc.has_proof_context = bool(re.search(r"\\begin\{proof\}|\b(?:Theorem|Lemma|Proposition|Corollary)\s*\d|"
                                            r"\*\*Proof\b|^\s*Proof[.:]", raw_all, re.M))
+    for name, no in doc.missing_inputs:
+        report.warn("S07", doc.loc(no), f"Included file '{name}' not found; its text was not checked.")
     notes = notes_text if notes_text is not None else notes_from_doc(doc)
     check_gaps(doc, report, notes)
     if getattr(args, "final", False):

@@ -8,8 +8,8 @@
 
 ```powershell
 python -X utf8 tests/validate.py
-python -X utf8 C:/Users/14550/.codex/skills/.system/skill-creator/scripts/quick_validate.py ./skills/research2paper
-git -c safe.directory=D:/github/SCI-DR.CAN diff --check
+python -X utf8 <skill-creator>/scripts/quick_validate.py ./skills/research2paper
+git diff --check
 ```
 
 重命名后的验证已通过：9 份 Prompt、34 个锚点、7 个客户端小节、12 个 Skill 文件及 9 个参考文件均有效；PowerShell 和 Git Bash 各通过 15 次复制检查，重复安装与缺失资源会正确停止。skill-creator 输出 `Skill is valid!`，`git diff --check` 通过。9 个参考文件与包内许可证逐字节保留，`DR.Can.md`、AGENTS.md、根许可证及用户重制说明的哈希未变。未改动全局安装，宿主发现与模型行为仍未实测。
@@ -38,8 +38,8 @@ README 结构为：**项目介绍 → 可直接使用的 Prompt → Skills 安�
 
 ```powershell
 python -X utf8 tests/validate.py
-python -X utf8 C:/Users/14550/.codex/skills/.system/skill-creator/scripts/quick_validate.py ./skills/sci-dr-can
-git -c safe.directory=D:/github/SCI-DR.CAN diff --check
+python -X utf8 <skill-creator>/scripts/quick_validate.py ./skills/sci-dr-can
+git diff --check
 ```
 
 首条命令仅依赖维护环境中的 `markdown-it-py` 和 `PyYAML`；第二条是本机已存在的 skill-creator 校验器，不是安装后 Skill 的运行依赖。Git 使用单条命令的 `safe.directory` 参数，未改全局 Git 配置。
