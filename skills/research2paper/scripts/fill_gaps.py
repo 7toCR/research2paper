@@ -14,7 +14,10 @@ or a plain mapping {"[MISSING: ...]" or "...marker text...": "value"}.
 - Only markers with a non-empty value are replaced; the others stay and are listed.
 - Replacement is exact: the marker text must match (whitespace-insensitive).
 - In the Chinese notes, lines under 材料缺口 that quote a filled marker are removed;
-  the rest of the notes is kept unchanged.
+  the rest of the notes is kept unchanged. A separate notes file (one that starts with
+  the notes headings) is filled with the same values file and loses the line of every
+  marker given a value.
+- Line endings of the input are kept.
 - The input file is never overwritten unless --in-place is given.
 
 After filling, re-read every sentence that contains a new value — and any sentence
@@ -74,6 +77,10 @@ def fill(text: str, values: dict[str, str]) -> tuple[str, int, set[str], list[st
         return m.group(0)
 
     body = [MISSING_RE.sub(sub, ln) for ln in lines[:notes_start]]
+    if notes_start == 0:
+        # A separate notes file (it starts with the notes headings): drop the line of every marker
+        # given a value. Pass only values whose markers were actually filled in the manuscript.
+        filled = set(values)
     notes: list[str] = []
     in_gap_section = False
     for ln in lines[notes_start:]:
@@ -98,12 +105,15 @@ def main(argv: list[str] | None = None) -> int:
         sys.stdout.reconfigure(encoding="utf-8")  # type: ignore[attr-defined]
     except (AttributeError, ValueError):
         pass
-    text = args.draft.read_text(encoding="utf-8")
+    # newline="" keeps the draft's own line endings (no LF -> CRLF rewrite on Windows).
+    with open(args.draft, encoding="utf-8", newline="") as fh:
+        text = fh.read()
     values = load_values(args.values)
     out_text, replaced, filled, remaining = fill(text, values)
     out = args.draft if args.in_place else (args.output or args.draft.with_name(
         f"{args.draft.stem}.filled{args.draft.suffix}"))
-    out.write_text(out_text, encoding="utf-8")
+    with open(out, "w", encoding="utf-8", newline="") as fh:
+        fh.write(out_text)
     unused = sorted(set(values) - filled)
     print(f"Filled {len(filled)} marker(s) ({replaced} occurrence(s)) -> {out}")
     if unused:

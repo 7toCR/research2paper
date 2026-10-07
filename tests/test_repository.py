@@ -6,7 +6,9 @@ Run from the repository root:  python -m unittest discover -s tests
 from __future__ import annotations
 
 import filecmp
+import json
 import re
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -17,8 +19,15 @@ TEXT_SUFFIXES = {".md", ".py", ".json", ".yaml", ".yml", ".mdc", ".tex", ".bib",
 
 
 def repo_files() -> list[Path]:
-    skip = {".git", "__pycache__", "runs", "inputs"}
-    return [p for p in ROOT.rglob("*") if p.is_file() and not (set(p.relative_to(ROOT).parts) & skip)]
+    """Files git tracks or would track (respects .gitignore: node_modules, local reference checkouts)."""
+    skip = {".git", "__pycache__", "runs", "inputs", "node_modules"}
+    try:
+        out = subprocess.run(["git", "ls-files", "-z", "--cached", "--others", "--exclude-standard"],
+                             cwd=ROOT, capture_output=True, check=True).stdout
+        paths = [ROOT / p for p in out.decode("utf-8").split("\0") if p]
+    except (OSError, subprocess.CalledProcessError):
+        paths = list(ROOT.rglob("*"))
+    return [p for p in paths if p.is_file() and not (set(p.relative_to(ROOT).parts) & skip)]
 
 
 def frontmatter(text: str) -> dict[str, str]:
@@ -74,6 +83,21 @@ class Mirror(unittest.TestCase):
         self.assertEqual(src, dst)
         for rel in src:
             self.assertTrue(filecmp.cmp(SKILL / rel, MIRROR / rel, shallow=False), str(rel))
+
+
+class PiPackage(unittest.TestCase):
+    def test_manifest_points_at_existing_resources(self):
+        pkg = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
+        self.assertIn("pi-package", pkg["keywords"])
+        for rel in pkg["pi"]["extensions"] + pkg["pi"]["skills"]:
+            self.assertTrue((ROOT / rel).exists(), rel)
+        self.assertEqual(pkg["pi"]["skills"], ["./skills"], "the agent must load the canonical skill, not the mirror")
+
+    def test_host_packages_are_peers_not_dependencies(self):
+        pkg = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
+        for name in ("@earendil-works/pi-coding-agent", "@earendil-works/pi-ai", "typebox"):
+            self.assertEqual(pkg["peerDependencies"].get(name), "*", name)
+            self.assertNotIn(name, pkg.get("dependencies", {}), name)
 
 
 class Readme(unittest.TestCase):

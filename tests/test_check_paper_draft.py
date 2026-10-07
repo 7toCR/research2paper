@@ -153,6 +153,33 @@ class PositioningAndGaps(unittest.TestCase):
             r2 = run(filled, "--final")
             self.assertEqual(len([f for f in r2.findings if f.code == "G07"]), 1)
 
+    def test_fill_keeps_line_endings(self):
+        import fill_gaps
+        with tempfile.TemporaryDirectory() as tmp:
+            for newline in (b"\n", b"\r\n"):
+                draft = Path(tmp) / "d.tex"
+                draft.write_bytes(b"Stride: [MISSING: stride of the sliding window]." + newline + b"Next." + newline)
+                values = Path(tmp) / "v.json"
+                values.write_text(json.dumps({"stride of the sliding window": "16 samples"}), encoding="utf-8")
+                with contextlib.redirect_stdout(io.StringIO()):
+                    fill_gaps.main([str(draft), str(values), "--in-place"])
+                self.assertEqual(draft.read_bytes(), b"Stride: 16 samples." + newline + b"Next." + newline)
+
+    def test_fill_separate_notes_file(self):
+        import fill_gaps
+        with tempfile.TemporaryDirectory() as tmp:
+            memo = Path(tmp) / "memo.md"
+            memo.write_text("# 中文说明\n\n## 材料缺口\n\n- `[MISSING: stride of the sliding window]`：请提供。\n"
+                            "- `[MISSING: title]`：最后确定。\n\n## 待核验事项\n\n- 引用 [3] 未核验。\n", encoding="utf-8")
+            values = Path(tmp) / "v.json"
+            values.write_text(json.dumps({"[MISSING: stride of the sliding window]": "16 samples"}), encoding="utf-8")
+            with contextlib.redirect_stdout(io.StringIO()):
+                fill_gaps.main([str(memo), str(values), "--in-place"])
+            text = memo.read_text(encoding="utf-8")
+            self.assertNotIn("stride", text)
+            self.assertIn("[MISSING: title]", text)
+            self.assertIn("引用 [3] 未核验", text)
+
 
 class FlawedLatex(unittest.TestCase):
     def test_latex(self):
@@ -162,6 +189,41 @@ class FlawedLatex(unittest.TestCase):
         self.assertTrue({"A02", "C04", "F04", "L02", "W03"} <= codes(r, "WARN"), cpd.format_report(r))
         # the commented-out "Fig. 9" must not be read
         self.assertFalse(any("9" in f.message and f.code.startswith("F") for f in r.findings))
+
+    def test_multi_file_latex(self):
+        main = r"""\documentclass{article}
+\title{Synthetic Multi-File Test}
+\begin{document}
+\maketitle
+\input{sections/intro}
+\include{sections/results.tex}
+% \input{sections/commented}
+\input{sections/absent}
+\bibliographystyle{plain}
+\bibliography{refs}
+\end{document}
+"""
+        intro = "\\section{Introduction}\nPrior work exists \\cite{known}.\nWe use the Synthetic Noise Ratio (SNR).\n"
+        results = ("\\section{Results}\nAs shown in Fig.~\\ref{fig:missing}, the SNR rose \\cite{unknown}.\n"
+                   "[MISSING]\n")
+        bib = "@article{known, title={Synthetic}, author={Doe, A.}, journal={J. Synth.}, year={2020}}\n"
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "sections").mkdir()
+            (root / "main.tex").write_text(main, encoding="utf-8")
+            (root / "sections" / "intro.tex").write_text(intro, encoding="utf-8")
+            (root / "sections" / "results.tex").write_text(results, encoding="utf-8")
+            (root / "refs.bib").write_text(bib, encoding="utf-8")
+            r = run(root / "main.tex")
+        by_code = {f.code: f for f in r.findings}
+        # included text is checked and located by file and line
+        self.assertEqual(by_code["C01"].where.split(" [")[0], "sections/results.tex line 2", cpd.format_report(r))
+        self.assertEqual(by_code["G01"].where.split(" [")[0], "sections/results.tex line 3")
+        self.assertEqual(by_code["L01"].where, "sections/results.tex line 2")
+        # a missing input is reported at the \input line of the main file; a commented one is ignored
+        self.assertEqual([f.where for f in r.findings if f.code == "S07"], ["line 8"])
+        self.assertIn("sections/absent", by_code["S07"].message)
+        self.assertNotIn("commented", cpd.format_report(r))
 
 
 class FlawedResponse(unittest.TestCase):
@@ -179,6 +241,14 @@ class Heuristics(unittest.TestCase):
         r = run_text("## Results\n\nThe 4-point gain has not been tested for statistical significance.\n",
                      ".md", "--mode", "section")
         self.assertNotIn("W02", codes(r))
+        # negation after the noun (found in a real agent run)
+        for honest in ("Statistical significance was not assessed.",
+                       "The significance of this difference has not been tested."):
+            r = run_text(f"## Results\n\nThe gain is 5 percentage points. {honest}\n", ".md", "--mode", "section")
+            self.assertNotIn("W02", codes(r), honest)
+        # a claim stays a claim even when another clause is negated
+        r = run_text("## Results\n\nA significant gain was not observed in the first run.\n", ".md", "--mode", "section")
+        self.assertIn("W02", codes(r))
 
     def test_relative_change_is_fine(self):
         r = run_text("## Results\n\nAccuracy rose from 80% to 84%, a relative increase of 5%.\n", ".md",

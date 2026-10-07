@@ -1,5 +1,62 @@
 # 更新记录
 
+## 2026-10 · Paper Agent P1：工作区、LaTeX 编译、写保护、交付前自动检查
+
+P0 时，“交付前检查”还只是提示词里的一句话。P1 把它交给 harness 执行：每轮结束时，只要稿件改过，agent 就自动编译并检查。有错误时让模型修改，每条用户消息最多修两轮；两轮后仍有错误，就如实列出，不会说成已修好。方案见 [docs/agent-design.md](docs/agent-design.md)。
+
+**Agent**
+
+- **`paper_init` / `/paper init`：** 生成 `PAPER.md`、`materials/`、`paper/`（`main.tex` + `sections/*.tex` + `refs.bib` + `figures/`）、`notes/memo.md` 和 `.gitignore`，已有文件不覆盖。
+  - 内置 article、elsarticle、IEEEtran 三套骨架，都能直接编译。
+- **`latex_compile`：** 首选 tectonic，没有时退回 latexmk，shell-escape 一律关闭。
+  - 用到 fontspec / ctex 等包时自动改用 xelatex。
+  - 返回带文件和行号的错误、未定义的引用和引文、重复的 label、缺失的文件、overfull box 数量和页数。
+- **写保护：**
+  - `materials/` 和 DR.Can.md 只读；
+  - 工作区外的已有文件要用户确认才能覆盖（无界面时直接拒绝，改写成新文件）；
+  - bash/PowerShell 中删除、移动、覆盖 `materials/` 的命令要确认。
+- **自动关卡：** LaTeX 各节或中文说明改动后，检查 `main.tex`，同时读取 `notes/memo.md` 和 `PAPER.md` 中的字数上限。WARN 不触发修复轮。
+- **`fill_gaps`：** LaTeX 各节和中文说明原地填写，其他文件另存 `.filled` 副本；只有在稿件中确实出现的标记，才会从说明里删掉对应条目。
+- **`/paper check | compile | final | status`；** `<paper_state>` 新增最近一次编译的结果，以及还没编译的项目。
+
+**Skill 脚本（也惠及不用 agent 的用户）**
+
+- `check_paper_draft.py` 支持多文件 LaTeX：展开 `\input` / `\include` / `\subfile`，问题位置报告为 `sections/methods.tex line 12`；找不到的文件报 S07（共 48 项检查）。
+- `fill_gaps.py`：
+  - 保留原文件的换行符（修复 Windows 上把 LF 改成 CRLF 的问题）；
+  - 支持单独的中文说明文件。
+
+**测试：** 用 pi 的 faux 模型跑端到端测试，覆盖修复轮、轮数上限、写保护、`fill_gaps`；另有真实 LaTeX 编译测试，没有引擎时自动跳过。
+
+**真实模型试跑（1 次）：** 用虚构的去噪实验材料，让 gpt-6-astra 写 Methods 和 Results and Discussion 两节。
+
+- 表现正常的地方：
+  - 先读 SKILL.md 和对应的 references；
+  - 用 Python 算出 5 个百分点（没有写成 5%），全文没有 "significant"；
+  - 未记录的滑窗步长写成 `[MISSING: …]`，中文说明逐条写出 9 个缺口；
+  - 写完后自己调用检查和编译，交付前 0 ERROR；最后修改说明后，自动关卡复查通过。
+- 据此修复了三处：
+  - W02 误报 "statistical significance was not assessed" 这类否定词在后面的诚实说明；
+  - 模型指定的引擎没装时，现在会明确说明换用了哪个引擎，不再默默替换；
+  - 提示模型不要自己设定字数上限。
+
+**已知限制：**
+
+- 编译测试在 latexmk（TeX Live 2026）和 tectonic 0.17.0（Windows）上都已通过。tectonic 首次编译要下载宏包，网络慢时可能超过 300 秒的上限；实测时用真实的 tectonic 输出修正了错误解析（文件名不带扩展名、外层的泛泛报错、日志里的重复）。
+- bash 写保护是启发式的。
+- 自动检查、编译和真实模型的配合，还没有按 `evals/` 做盲评。
+
+## 2026-10 · Paper Agent P0：基于 pi 的论文 agent 骨架
+
+把 research2paper 做成 [pi](https://github.com/earendil-works/pi) 包（extension + skill），不 fork pi 源码。规则仍然只在 `skills/research2paper/`，agent 只负责编排。完整方案见 [docs/agent-design.md](docs/agent-design.md)。
+
+- **论文模式：** 目录里有 `PAPER.md` 或 `.r2p/`、启动时加 `--paper`、或执行 `/paper on` 时开启；其他情况下 pi 保持原样。
+- **系统提示词：** 换成论文 agent 的提示词（以 SKILL.md 为准）；注入 `PAPER.md`；新增 `<paper_state>` 段，显示最近一次检查结果和检查之后改过的稿件。
+- **`check_draft` 工具：** 调用 `check_paper_draft.py`，返回结构化结果；报告存进 `.r2p/reports/`。
+- **`/paper on | off | status | init` 命令；** `init` 生成 `PAPER.md` 和 `materials/`。
+- **测试：** `npm test` 包含用 pi 的 faux 模型驱动的端到端测试，不需要联网，也不需要 API key。
+- **仓库测试改为只扫描 git 跟踪的文件；** 去掉 `VALIDATION.md` 里的本机路径。
+
 ## 2026-10 · 机制对照、细节分流与缺口补齐（根据第二次对比评审）
 
 用升级后的 Skill 对同一批材料重新生成稿件（C），与作者稿（A）、上一版生成稿（B）一起评审。C 排第一（C > A > B）：研究问题更明确，方法先定义对象再讲构建，设计理由和架构更清楚，叙述也不再混入核查记录。剩下的不足集中在三处，另外发现一处改写丢信息。本次针对这些问题修改，原则是不过度保守、也不过度激进。

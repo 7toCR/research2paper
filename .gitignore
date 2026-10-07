@@ -23,3 +23,10 @@ __pycache__/
 Thumbs.db
 .vscode/
 .idea/
+
+# Node (paper agent)
+node_modules/
+
+# Local reference checkouts
+reference/
+gudie/

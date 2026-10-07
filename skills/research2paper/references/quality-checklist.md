@@ -9,6 +9,7 @@ Use before delivering a full draft and for every pre-submission check. Check onl
 | S01–S03 | WARN | No title, no abstract, a core section missing (full manuscripts only) |
 | S04, S05 | ERROR | Abstract or title over the word limit given with `--abstract-words` / `--title-words` |
 | S06 | WARN | Citation inside the Abstract |
+| S07 | WARN | LaTeX `\input` / `\include` file not found (the checker reads included files and reports their positions as `file line N`) |
 | G01 | ERROR | Empty or vague gap marker (`[MISSING]`, `[MISSING: details]`) |
 | G02 | WARN | Non-standard placeholder: TODO, TBD, XXX, `??`, `[citation needed]`, `[REF]`, 【待补充】 |
 | G03 | INFO | List of all `[MISSING: …]` markers |

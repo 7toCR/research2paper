@@ -41,7 +41,7 @@ Research2Paper 把 B 站 UP 主 DR_CAN 的 SCI 论文写作课整理成可执行
 | 🖼️ 图表与图注 | 图表规划、英文图注、正文引用与编号检查；只在能看到图片时评价视觉质量 |
 | ✉️ 审稿回复 | Comment / Response / Changes / Location 逐条回复；没做完的实验不写 We have conducted |
 | 🧱 两层输出 | 论文正文只讲研究；核查范围、未能确认的配置、材料之间的不一致和写作过程全部放进中文说明；每个限制只在相应结论旁说一次 |
-| ✅ 自动检查 | 40 余项检查，支持 Markdown、LaTeX（含 .bib）、Word（.docx）和纯文本；不用 AI 也能单独检查自己的稿子 |
+| ✅ 自动检查 | 40 余项检查，支持 Markdown、LaTeX（含 .bib 和 `\input` 拆分的多文件稿件）、Word（.docx）和纯文本；不用 AI 也能单独检查自己的稿子 |
 
 默认输出英文正文 + 中文说明（主要修改、材料缺口、待核验事项）；你指定其他语言时按你的要求。
 
@@ -151,9 +151,38 @@ skills/research2paper/               Skill 主版本（.claude/skills/research2p
 docs/DR.Can.md                       DR_CAN SCI 写作课整理笔记（方法依据，原文保留）
 evals/                               评估方案：验收场景、评分细则、输出评分脚本
 tests/                               检查脚本与仓库结构的回归测试
+agent/                               基于 pi 的 Paper Agent（预览）
 ```
 
 </details>
+
+<a id="paper-agent"></a>
+
+### Paper Agent（预览）
+
+把这个 Skill 装进 [pi](https://github.com/earendil-works/pi)，作为专门写论文的 agent 使用。
+
+在论文目录里，它会：
+
+- 换上写论文用的系统提示词，并把 `PAPER.md`（目标期刊、字数上限、文件布局）注入上下文；
+- 用 `/paper init [article|elsarticle|ieeetran]` 或 `paper_init` 工具生成工作区：
+  - `materials/` 放原始材料；
+  - `paper/` 是 LaTeX 稿件（`main.tex` + `sections/*.tex` + `refs.bib`）；
+  - `notes/memo.md` 放中文说明；
+- 用 `latex_compile` 编译 PDF：首选 tectonic，没有时退回 latexmk，并关闭 shell-escape；返回带文件和行号的错误、未定义的引用和引文；
+- `materials/` 只读，工作区外的已有文件要先经你确认才会被覆盖；
+- 每轮结束时，如果稿件改过，自动编译并检查。有错误就让模型修改，最多两轮，修不好就如实列出剩下的问题；
+- 用 `fill_gaps` 把你提供的信息填进缺口标记，同时从 `notes/memo.md` 删掉对应条目。
+
+在其他目录里，pi 保持原样，这些工具也不会出现。
+
+```bash
+pi install git:github.com/7toCR/research2paper
+```
+
+在新目录里执行 `pi --paper`（或在会话中输入 `/paper on`），再执行 `/paper init`。之后进入这个目录就会自动开启论文模式。其他命令：`/paper check`、`/paper compile`、`/paper final`（投稿前检查，任何缺口都算 ERROR）、`/paper status`。
+
+需要 Python 3（检查脚本）和 tectonic 或 latexmk（编译）。设计和后续计划见[设计方案](docs/agent-design.md)。
 
 <a id="checker"></a>
 
