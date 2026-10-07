@@ -32,8 +32,11 @@ research2paper/
 │   │   ├── paths.ts
 │   │   ├── evidence.ts       证据账本（notes/evidence.json）
 │   │   ├── stats.ts          精确计算：比率、百分点、相对变化，可直接读 CSV 单元格
-│   │   └── tools/            check_draft、latex_compile、paper_init、fill_gaps、evidence、compute_stats
-│   ├── templates/PAPER.md    /paper init 生成的工作区说明
+│   │   ├── bib.ts            BibTeX 解析与 Crossref 核对
+│   │   ├── pdf.ts            PDF 页面转 PNG（pdftoppm / mutool / Ghostscript）
+│   │   └── tools/            check_draft、latex_compile、paper_init、fill_gaps、evidence、compute_stats、bib_lookup、pdf_preview
+│   ├── bin/paper.mjs         独立启动器：pi + 本扩展 + 论文模式
+│   ├── templates/            PAPER.md、memo.md、LaTeX 骨架
 │   └── test/                 node --test；含 faux 模型驱动的端到端测试
 └── skills/research2paper/    不变：规则、references、checker（Python 标准库）
 ```
@@ -73,8 +76,8 @@ pi 的 `customPrompt` 一旦设置，会同时去掉 pi 自带的 tools 和 rule
 | `fill_gaps` | P1 ✅ | 调用 `fill_gaps.py`：LaTeX 各节和 `notes/memo.md` 原地填写，其他文件另存 `.filled` 副本；只有在稿件中确实出现的标记，才会从说明里删掉对应条目 |
 | `evidence` | P2 ✅ | 证据账本 `notes/evidence.json`：每条记录内容、四类证据分类、出处；可增、改、删、查；被其他条目引用的条目不能删除 |
 | `compute_stats` | P2 ✅ | 计算比率、差值、百分点、相对变化和比值；数值可以直接读 CSV/TSV 单元格；输入和结果都自动记进账本，并注明来源和推导关系；不做显著性检验 |
-| `bib_lookup` | P3 | 用 Crossref/DOI 核对书目记录是否存在，不自动生成引用 |
-| `pdf_preview` | P3 | 把 PDF 页转成图片，供多模态模型检查版面 |
+| `bib_lookup` | P3 ✅ | 用 Crossref 核对 .bib 条目：DOI 是否已注册；标题、年份、第一作者是否一致，年份只要等于记录上任一出版年份（正式、网络首发、印刷）即可；没有 DOI 的条目，按标题、作者、年份、期刊检索候选记录供作者确认。只读，从不改 .bib |
+| `pdf_preview` | P3 ✅ | 把编译好的 PDF 页面转成 PNG（pdftoppm，没有时用 mutool 或 Ghostscript），作为图片返回，每次最多 6 页；页数用 `pdfinfo` 读取 |
 
 checker 端配套改动：
 
@@ -116,7 +119,7 @@ checker 端配套改动：
 | **P0 骨架** ✅ | 包清单、激活开关、提示词替换、`PAPER.md` 注入、`<paper_state>`、`check_draft`、`/paper` | faux 模型驱动的端到端测试通过；真实 pi CLI 用 `-e` 加载和 `pi install` 安装都能识别 `--paper` |
 | **P1 MVP** ✅ | `paper_init` + 模板、`latex_compile`、写保护、检查和编译关卡、memo 分离、`fill_gaps`、checker 支持多文件 tex | 从 materials 出发，产出能编译、checker 没有 ERROR 的 PDF 初稿 |
 | **P2 证据** ✅ | `evidence`、`compute_stats`、checker `--ledger`；账本概况每条用户消息都注入 `<paper_state>`，账本本身是文件，上下文压缩不会丢，因此不需要另写压缩钩子 | 正文里没有出处的数字能被检出 |
-| **P3 增强** | `bib_lookup`、`pdf_preview`、独立的 `paper` 启动器 | 按需推进 |
+| **P3 增强** ✅ | `bib_lookup`、`pdf_preview`、独立的 `paper` 启动器 | 用真实 Crossref 能发现写错的年份，并找回缺 DOI 条目的正确记录；真实模型能看到预览图并描述版面 |
 
 评测沿用 `evals/`：同一批 case 分别用“只有 Skill 的 pi”和“paper agent”跑，按 `evals/rubric.md` 盲评。另外统计交付时剩余的 ERROR 数和编译成功率。
 
@@ -143,7 +146,10 @@ checker 端配套改动：
 npm install                                   # 开发依赖：pi、typebox、typescript
 npx pi -e ./agent/src/index.ts --paper        # 试用，不写入设置
 pi install git:github.com/7toCR/research2paper # 安装为 pi 包
+npm install -g github:7toCR/research2paper    # 或安装独立命令 paper（= pi + 本扩展 + 论文模式）
 ```
+
+`paper` 接受 pi 的全部参数；`paper install`、`paper auth` 等管理命令会原样交给 pi。同时用 `pi install` 安装了本包时，`paper` 也能正常使用：实测扩展只加载一次，没有冲突。
 
 在新目录里用 `pi --paper` 启动，或在会话中输入 `/paper on`，然后执行 `/paper init [article|elsarticle|ieeetran]`。之后进入这个目录会自动开启论文模式。
 
