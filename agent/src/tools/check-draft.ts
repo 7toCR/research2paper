@@ -18,12 +18,12 @@ export function createCheckDraftTool(state: PaperState) {
 		name: "check_draft",
 		label: "Check draft",
 		description:
-			"Run the Research2Paper checker (check_paper_draft.py) on a manuscript, section or reviewer-response letter (.md, .tex including its \\input files, .docx, .txt). Reports gap markers, figure/table/equation cross-references, citations against the reference list or .bib, acronyms, unsupported claim wording, percentage-point errors, Abstract/Conclusion numbers missing from the body, audit-log text inside the paper, and response-letter completion claims. For the manuscript named in PAPER.md, the notes file and word limits from PAPER.md are used by default. It cannot judge whether a claim is true.",
+			"Run the Research2Paper checker (check_paper_draft.py) on a manuscript, section or reviewer-response letter (.md, .tex including its \\input files, .docx, .txt). Reports gap markers, figure/table/equation cross-references, citations against the reference list or .bib, acronyms, unsupported claim wording, percentage-point errors, Abstract/Conclusion numbers missing from the body, audit-log text inside the paper, and response-letter completion claims. For the manuscript named in PAPER.md, the notes file and the word limits written in PAPER.md are applied (there is no other way to set a limit); when the workspace has an evidence ledger, numbers not recorded in it are reported as V01. It cannot judge whether a claim is true.",
 		promptSnippet: "Run the Research2Paper draft checker on a manuscript or response letter",
 		promptGuidelines: [
 			"Run check_draft on every manuscript or response-letter file you write or revise, before reporting to the user; for a LaTeX paper check the main .tex file, which includes the section files.",
 			"Use check_draft with final=true only for a pre-submission check: every remaining [MISSING: ...] marker is then an ERROR.",
-			"Pass abstractWords/titleWords only from PAPER.md, the journal's guidelines or the user; never invent a limit. For the PAPER.md manuscript, the limits there are applied automatically.",
+			"Word limits are read from PAPER.md ('Abstract word limit', 'Title word limit') for the manuscript it names. When the user or the journal's guidelines give a limit, write it into PAPER.md; never invent one.",
 		],
 		parameters: Type.Object({
 			path: Type.String({ description: "Draft or response letter to check, relative to the working directory" }),
@@ -31,14 +31,17 @@ export function createCheckDraftTool(state: PaperState) {
 			notes: Type.Optional(
 				Type.String({ description: "Separate file with the Chinese gap notes, when they are not in the draft" }),
 			),
+			ledger: Type.Optional(
+				Type.String({ description: "Evidence ledger JSON; default: the workspace ledger (notes/evidence.json) when it exists" }),
+			),
 			mode: Type.Optional(
 				Type.Union([Type.Literal("auto"), Type.Literal("manuscript"), Type.Literal("section"), Type.Literal("response")], {
 					description: "auto (default) detects a full manuscript, a single section or a response letter",
 				}),
 			),
 			final: Type.Optional(Type.Boolean({ description: "Submission stage: any remaining gap marker is an ERROR" })),
-			abstractWords: Type.Optional(Type.Integer({ minimum: 1, description: "Abstract word limit from the journal" })),
-			titleWords: Type.Optional(Type.Integer({ minimum: 1, description: "Title word limit from the journal" })),
+			// No word-limit parameters: models with strict tool schemas filled them with invented limits
+			// (seen in real runs). Limits come from PAPER.md, where their source is visible.
 		}),
 
 		async execute(_toolCallId, params, signal, _onUpdate, ctx) {

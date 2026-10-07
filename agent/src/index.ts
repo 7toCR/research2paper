@@ -18,6 +18,7 @@ import {
 } from "@earendil-works/pi-coding-agent";
 import { checkFile, compileProject } from "./actions.ts";
 import { findPython } from "./checker.ts";
+import { ledgerSummary, loadLedger } from "./evidence.ts";
 import { runGate } from "./gates.ts";
 import { type GuardDecision, guardCommand, guardFileChange } from "./guard.ts";
 import { detectEngine, ENGINE_HELP } from "./latex.ts";
@@ -25,6 +26,8 @@ import { PAPER_FILE, toPosix } from "./paths.ts";
 import { buildPreamble, buildStateSection } from "./prompt.ts";
 import { createState, isManuscriptFile, LATEX_SOURCE_EXT, resolveMode } from "./state.ts";
 import { createCheckDraftTool } from "./tools/check-draft.ts";
+import { computeStatsTool } from "./tools/compute-stats.ts";
+import { evidenceTool } from "./tools/evidence.ts";
 import { createFillGapsTool } from "./tools/fill-gaps.ts";
 import { createLatexCompileTool } from "./tools/latex-compile.ts";
 import { formatInit, paperInitTool } from "./tools/paper-init.ts";
@@ -33,7 +36,7 @@ import { initWorkspace, isInside, LATEX_TEMPLATES, type LatexTemplate, loadPaper
 const MODE_ENTRY = "r2p-mode";
 const GATE_MESSAGE = "r2p-gate";
 const STATUS_KEY = "research2paper";
-const PAPER_TOOLS = ["check_draft", "latex_compile", "paper_init", "fill_gaps"];
+const PAPER_TOOLS = ["check_draft", "latex_compile", "paper_init", "fill_gaps", "evidence", "compute_stats"];
 const COMMANDS = ["on", "off", "status", "init", "check", "compile", "final"];
 
 export default function research2paper(pi: ExtensionAPI) {
@@ -44,6 +47,8 @@ export default function research2paper(pi: ExtensionAPI) {
 	pi.registerTool(createLatexCompileTool(state));
 	pi.registerTool(paperInitTool);
 	pi.registerTool(createFillGapsTool(state));
+	pi.registerTool(evidenceTool);
+	pi.registerTool(computeStatsTool);
 
 	const mode = (ctx: ExtensionContext) => resolveMode(state, pi.getFlag("paper") === true, ctx.cwd);
 
@@ -94,7 +99,16 @@ export default function research2paper(pi: ExtensionAPI) {
 		if (existsSync(paperFile) && !options.contextFiles.some((file) => resolve(file.path) === paperFile)) {
 			options.contextFiles.push({ path: paperFile, content: readFileSync(paperFile, "utf8") });
 		}
-		options.sections.paper_state = buildStateSection(state, ctx.cwd, source);
+		const evidence = loadPaperConfig(ctx.cwd).evidence;
+		let ledger: string | undefined;
+		if (evidence && existsSync(evidence)) {
+			try {
+				ledger = `${toPosix(relative(ctx.cwd, evidence))}, ${ledgerSummary(loadLedger(evidence))}`;
+			} catch (error) {
+				ledger = `${toPosix(relative(ctx.cwd, evidence))} is not valid JSON (${error instanceof Error ? error.message : String(error)}); repair it`;
+			}
+		}
+		options.sections.paper_state = buildStateSection(state, ctx.cwd, source, ledger);
 	});
 
 	pi.on("tool_call", async (event, ctx) => {

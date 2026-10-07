@@ -236,6 +236,50 @@ class FlawedResponse(unittest.TestCase):
         self.assertNotIn("W01", codes(r))
 
 
+class EvidenceLedger(unittest.TestCase):
+    TEXT = ("## 3. Results\n\nAs shown in Fig. 2, SWD met the 20 dB criterion for 160 of 200 signals (80%), "
+            "compared with 150 (75%) for Baseline B [12], a difference of 5 percentage points "
+            "(relative increase 6.67%). Windows had 256 samples; the code used Python 3.11 (2020 release) "
+            "and 3 runs. The stride was [MISSING: stride of the sliding window, e.g. 128].\n")
+
+    def run_with(self, entries) -> cpd.Report:
+        with tempfile.TemporaryDirectory() as tmp:
+            ledger = Path(tmp) / "evidence.json"
+            ledger.write_text(json.dumps({"entries": entries}), encoding="utf-8")
+            draft = Path(tmp) / "d.md"
+            draft.write_text(self.TEXT, encoding="utf-8")
+            return run(draft, "--mode", "section", "--ledger", str(ledger))
+
+    def test_untraced_numbers_only(self):
+        r = self.run_with([
+            {"claim": "SWD met the criterion for 160 of 200 signals", "class": "verified", "source": "results.csv"},
+            {"claim": "Baseline B: 150 of 200", "class": "verified"},
+            {"claim": "Success rates", "numbers": [80, 75, 20], "class": "verified"},
+            {"claim": "Difference 5 percentage points; relative 6.666667%", "class": "verified"},
+            {"claim": "Window length 256 samples", "class": "author-reported"},
+            {"claim": "Python version: notes say 3.11, environment file says 3.12", "class": "missing"},
+        ])
+        flagged = sorted(f.message.split("'")[1] for f in r.findings if f.code == "V01")
+        # 3.11 is only recorded as conflicting; Fig. 2, [12], the year, the small integer and marker text are skipped
+        self.assertEqual(flagged, ["3.11"], cpd.format_report(r))
+        self.assertIn("6 entries (1 author-reported, 1 missing, 4 verified)",
+                      next(f.message for f in r.findings if f.code == "V02"))
+
+    def test_empty_ledger_flags_every_salient_number(self):
+        r = self.run_with([])
+        flagged = {f.message.split("'")[1] for f in r.findings if f.code == "V01"}
+        self.assertEqual(flagged, {"20", "160", "200", "80", "150", "75", "6.67", "256", "3.11"})
+
+    def test_unreadable_ledger_is_an_input_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            bad = Path(tmp) / "evidence.json"
+            bad.write_text("{not json", encoding="utf-8")
+            draft = Path(tmp) / "d.md"
+            draft.write_text(self.TEXT, encoding="utf-8")
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                self.assertEqual(cpd.main([str(draft), "--ledger", str(bad)]), 2)
+
+
 class Heuristics(unittest.TestCase):
     def test_honest_significance_statement_not_flagged(self):
         r = run_text("## Results\n\nThe 4-point gain has not been tested for statistical significance.\n",

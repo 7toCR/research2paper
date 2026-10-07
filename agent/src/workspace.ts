@@ -9,6 +9,7 @@ export const LAYOUT = {
 	manuscript: "paper/main.tex",
 	bibliography: "paper/refs.bib",
 	notes: "notes/memo.md",
+	evidence: "notes/evidence.json",
 } as const;
 
 export const LATEX_TEMPLATES = ["article", "elsarticle", "ieeetran"] as const;
@@ -22,6 +23,8 @@ export interface PaperConfig {
 	manuscript?: string;
 	bibliography?: string;
 	notes?: string;
+	/** Evidence ledger (JSON); checks pass it to the checker as --ledger when it exists. */
+	evidence?: string;
 	materials: string;
 }
 
@@ -58,8 +61,14 @@ export function loadPaperConfig(cwd: string): PaperConfig {
 		manuscript: path(fields.manuscript, LAYOUT.manuscript),
 		bibliography: path(fields.bibliography, LAYOUT.bibliography),
 		notes: path(fields.notes, LAYOUT.notes),
+		evidence: path(fields.evidence, LAYOUT.evidence),
 		materials: resolve(cwd, fields.materials ?? LAYOUT.materials),
 	};
+}
+
+/** Where the evidence ledger lives (or will be created): PAPER.md's Evidence field, else notes/evidence.json. */
+export function ledgerPathFor(cwd: string): string {
+	return loadPaperConfig(cwd).evidence ?? join(cwd, LAYOUT.evidence);
 }
 
 export function isInside(dir: string, path: string): boolean {
@@ -122,6 +131,7 @@ export function initWorkspace(cwd: string, template: LatexTemplate, journal?: st
 	copyTree(join(TEMPLATES_DIR, "latex", "common"), join(cwd, LAYOUT.paper), cwd, result);
 	copyTree(join(TEMPLATES_DIR, "latex", template), join(cwd, LAYOUT.paper), cwd, result);
 	write(LAYOUT.notes, readFileSync(join(TEMPLATES_DIR, "memo.md"), "utf8"));
+	write(LAYOUT.evidence, `${JSON.stringify({ version: 1, entries: [] }, null, "\t")}\n`);
 	write(".gitignore", `${LAYOUT.paper}/build/\n${STATE_DIR}/\n`);
 	return result;
 }

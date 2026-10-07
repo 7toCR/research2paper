@@ -43,6 +43,8 @@ For each claim the draft relies on, keep a short location (file § section, Tabl
 
 Output the full claim-to-evidence table only for full drafts, disputed facts or on request.
 
+When you can write files, keep the sheet as a JSON ledger so the checker can trace numbers: `{"entries": [{"claim": "SWD met the criterion for 160 of 200 signals", "class": "verified", "source": "results.csv, row SWD"}]}` (classes: `verified`, `author-reported`, `interpretation`, `missing`; an optional `numbers` list overrides the numbers read from the claim). Record derived values (rates, differences, relative change) with the numbers you computed. `check_paper_draft.py draft.tex --ledger evidence.json` then reports every salient number in the paper that no entry records (V01); numbers of `missing` entries never count as recorded.
+
 ## Two layers: paper and memo
 
 Read `references/paper-layer.md` before drafting. In short: the paper is the authors' account of their research; everything about the material, your checks and how the draft was made goes to the Chinese memo. Material audits (code, logs, prompt files, repositories) feed the evidence sheet and the memo; they are not part of the paper's narrative. Each limitation is stated once at its claim plus once in a Limitations paragraph; the Abstract carries at most one sentence of it.

@@ -15,6 +15,8 @@ export interface CheckRequest {
 	path: string;
 	bib?: string;
 	notes?: string;
+	/** Evidence ledger; default: the workspace ledger when it exists. false disables the comparison. */
+	ledger?: string | false;
 	mode?: CheckMode;
 	final?: boolean;
 	abstractWords?: number;
@@ -42,11 +44,14 @@ export async function checkFile(
 	// A .tex manuscript finds its .bib through \bibliography; pass one only when asked.
 	const bib = request.bib ? resolve(cwd, request.bib) : undefined;
 	const notes = request.notes ? resolve(cwd, request.notes) : isManuscript ? existing(config.notes) : undefined;
+	const ledger =
+		request.ledger === false ? undefined : request.ledger ? resolve(cwd, request.ledger) : existing(config.evidence);
 	const final = request.final ?? false;
 	const { report, reportPath } = await runChecker({
 		input: path,
 		bib,
 		notes,
+		ledger,
 		mode: request.mode,
 		final,
 		abstractWords: request.abstractWords ?? (isManuscript ? config.abstractWords : undefined),
