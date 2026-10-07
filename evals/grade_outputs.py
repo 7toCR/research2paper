@@ -76,11 +76,12 @@ def grade_text(case: dict, text: str) -> dict:
         with tempfile.TemporaryDirectory() as tmp:
             p = Path(tmp) / "output.md"
             p.write_text(text, encoding="utf-8")  # notes stay in so G04 can match markers to them
-            args = cpd.build_parser().parse_args([str(p), "--mode", checker.get("mode", "auto")])
+            argv = [str(p), "--mode", checker.get("mode", "auto")] + (["--final"] if checker.get("final") else [])
+            args = cpd.build_parser().parse_args(argv)
             report = cpd.run_checks(cpd.load_document(p), args)
         errors = [f"{f.code} {f.message}" for f in report.findings if f.level == "ERROR"]
         forbidden = [f"{f.code} {f.where}: {f.message}" for f in report.findings
-                     if f.code in set(checker.get("forbid_codes", [])) and f.level != "INFO"]
+                     if f.code in set(checker.get("forbid_codes", []))]
         checker_summary = {"errors": len(errors), "warnings": report.count("WARN"), "forbidden": len(forbidden)}
         if len(errors) > checker.get("max_errors", 0):
             failures.extend(f"checker ERROR {e}" for e in errors)
@@ -130,6 +131,13 @@ SELF_TEST = {
         "## 待核验事项\n\n- 代码仓库中的提示词与设计文档的统一提示词有两处不同，请确认论文以哪一版为准。\n",
         "## Methods\n\nIn this draft, the record format follows the supplied materials, although the field order "
         "could not be confirmed from the repository. Scores were not recomputed in this writing trial.\n",
+    ),
+    "related-work-mechanism-contrast": (
+        "Clip2Text [5] captions each optical-flow segment independently, and EventSum [6] fills fixed templates "
+        "with tracked events, whereas FactCheck [7] verifies a report only after it is generated. Our pipeline "
+        "instead passes one event record to both the planner and the writer and checks each sentence against it.\n",
+        "Clip2Text [5] generates text from clips. EventSum [6] summarises events. FactCheck [7] checks facts. "
+        "These methods lack a shared representation and ignore conflicts between components.\n",
     ),
 }
 

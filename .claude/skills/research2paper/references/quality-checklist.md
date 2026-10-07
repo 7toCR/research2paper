@@ -15,6 +15,7 @@ Use before delivering a full draft and for every pre-submission check. Check onl
 | G04 | WARN | Marker not mentioned in the gap notes (section 材料缺口 / Gaps, or `--notes`) |
 | G05 | INFO | Markers inside Title/Abstract (acceptable only in a provisional abstract) |
 | G06 | WARN | Marker longer than ~15 words: it carries an explanation that belongs in the memo |
+| G07 | ERROR | With `--final`: any remaining marker or provisional-abstract label |
 | F01 / E01 | ERROR | Figure, table or equation cited but not defined |
 | F02 | WARN | Figure or table defined but never cited in the text |
 | F03 | WARN | Figures/tables not first cited in numerical order |
@@ -34,7 +35,10 @@ Use before delivering a full draft and for every pre-submission check. Check onl
 | W05 | WARN | Teaching-example leakage (DR_CAN's football / fan-age examples) |
 | W06 | WARN | Drafting or verification remark in the paper text ("this draft", "the supplied materials", "could not be confirmed from the records", "not recomputed here", "work tree") |
 | W07 | WARN | Boundary overload: ≥ 2 limitation/disclaimer sentences in the Abstract or the Conclusion, or ≥ 3 in one paragraph outside the Limitations paragraph |
+| W08 | WARN | A description that restates a method's name as its function ("the Temporal Event Parser parses temporal events") |
+| W09 | INFO | Related-work paragraph that introduces three or more cited methods one after another without any comparison |
 | M01 | INFO | Methods paragraph with several settings and no stated purpose (rationale missing) |
+| M02 | INFO | Methods paragraph dominated by implementation conventions (fallbacks, offsets, character limits, minimum counts) outside an implementation-details section |
 | N01 | WARN | Number glued to a unit (`10Hz` → `10 Hz`) |
 | D01 | WARN | Number in Abstract/Conclusion not found in the body |
 | D02 | WARN | Conclusion or Abstract sentence copied from Results/Discussion |
@@ -74,6 +78,10 @@ Check only against guidelines actually obtained (name the version or access date
 - Each limitation appears once at its claim and once in a Limitations paragraph; the Abstract carries at most one sentence of it; the Conclusion ends on the main line, not on to-dos (W07).
 - Positioning is positive: what the paper does, on what evidence. No run of "we do not claim …" sentences; no concept introduced only to be denied.
 - The Introduction opens with the specific tension the paper resolves and closes with named contributions linked to sections.
+- Related work is organised by the design's axes; each contrast states what prior work does and what this paper does (mechanism facts, not adjectives); no "X lacks …" without evidence from X (W08, W09).
+- Revisions keep the specific facts of the sentences they replace.
+- Implementation conventions sit in an implementation-details paragraph or the supplement, not in the component text (M02); nothing was deleted.
+- Gaps: every marker was searched for in the supplied files, is placed where its value goes, and is listed by priority; a submission draft passes `--final` (G07).
 - Methods: each component's purpose precedes its procedure; the objects passed between components are named; check/revise loops have triggers and stopping rules; formulas add a decision rule or are presented as notation (M01 flags settings without purpose).
 - Explanatory sentences (design rationale, observation vs mechanism) are kept — they are not disclaimers.
 

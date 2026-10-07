@@ -14,7 +14,7 @@ Help the author turn research they actually did into a paper draft they can veri
 2. **Every statement traceable.** Numbers, settings, methods, comparisons, novelty and citations come from the author's material or from a source you actually read. Teaching examples (DR_CAN's football and fan-age examples, template wording) are never research facts.
 3. **Visible gaps, short markers.** Missing facts are short `[MISSING: specific information]` markers in the English text and listed again in the Chinese notes, with the explanation there. A draft that looks complete but hides its gaps is worse than one that names them.
 4. **Claim strength matches evidence.** No "significant" without a test, no causal claim from correlation, no "first" or "state-of-the-art" without a search and a fair comparison, percentage points kept apart from relative change.
-5. **Sections do their own job.** The Introduction opens with the specific tension and closes with named contributions; Methods explain each component's purpose before its procedure; Results describe, analyse and discuss; the Conclusion rewrites rather than copies; the Abstract contains nothing the body does not.
+5. **Sections do their own job.** The Introduction opens with the specific tension, compares prior work with this paper along the design's own axes (mechanisms, not names or adjectives) and closes with named contributions; Methods explain each component's purpose before its procedure and move implementation conventions out of the component text; Results describe, analyse and discuss; the Conclusion rewrites rather than copies; the Abstract contains nothing the body does not.
 6. **The paper talks about the research, the memo talks about the draft.** What you could not verify, how the draft was produced, which files disagree and what still needs checking go to the Chinese memo — never into the paper's narrative. Each limitation is stated once where it limits a claim and once in a Limitations paragraph; the Abstract and Conclusion stay on the contribution. A careful draft that reads like an audit log has failed as a paper.
 
 ## Workflow
@@ -45,8 +45,8 @@ Default order, from DR_CAN's lessons: **Methods → Results and Discussion → C
 | Task | Read |
 |---|---|
 | Every drafting or revision task: paper vs memo, boundary budget, marker discipline | `references/paper-layer.md` |
-| Introduction, research gap, literature organisation | `references/introduction.md` |
-| Methods, experimental setup, symbols, equations | `references/methodology.md` |
+| Introduction, related work as mechanism comparison, research gap | `references/introduction.md` |
+| Methods, detail triage (core / convention / setting), symbols, equations | `references/methodology.md` |
 | Results, analysis, discussion, limitations | `references/results-discussion.md` |
 | Conclusion, Abstract, Title | `references/conclusion-abstract-title.md` |
 | Figure/table planning, captions, figure checks | `references/figures-tables.md` |
@@ -64,16 +64,18 @@ When you can run Python, save the draft (Markdown or LaTeX) to a file — a scra
 python <skill>/scripts/check_paper_draft.py draft.md
 python <skill>/scripts/check_paper_draft.py draft.tex --bib refs.bib --abstract-words 250
 python <skill>/scripts/check_paper_draft.py response.md --mode response
+python <skill>/scripts/check_paper_draft.py draft.md --final                    # before submission: any marker is an ERROR
+python <skill>/scripts/check_paper_draft.py draft.md --export-gaps gaps.json    # then: fill_gaps.py draft.md gaps.json
 ```
 
-`<skill>` is this skill's directory. Fix every `ERROR`; for each `WARN`, fix it or be able to say why it is a false alarm. The checker catches what is easy to miss when re-reading your own text: empty or non-standard gap markers, figures/tables/equations cited but not defined (or defined but never cited), citations missing from the reference list, acronyms used before definition, "significant" without statistics, absolute differences written as relative percentages, unsupported "first/novel/state-of-the-art", vague "the figure above" references, numbers in the Abstract or Conclusion that appear nowhere in the body, Conclusion sentences copied from Results, teaching-example leakage, and — in response letters — completion claims ("We have conducted…") next to missing changes. It also flags the writing failures that make a careful draft read like an audit log: drafting or verification remarks inside the paper text, runs of "we do not claim / cannot establish" sentences, an Abstract or Conclusion that spends more than a sentence on limitations, gap markers that carry explanations, and method paragraphs that list settings without stating their purpose. It cannot judge whether a claim is true; the checklist in `references/quality-checklist.md` covers the judgement part. Without a shell, apply the same checklist by hand.
+`<skill>` is this skill's directory. Fix every `ERROR`; for each `WARN`, fix it or be able to say why it is a false alarm. The checker catches what is easy to miss when re-reading your own text: empty or non-standard gap markers, figures/tables/equations cited but not defined (or defined but never cited), citations missing from the reference list, acronyms used before definition, "significant" without statistics, absolute differences written as relative percentages, unsupported "first/novel/state-of-the-art", vague "the figure above" references, numbers in the Abstract or Conclusion that appear nowhere in the body, Conclusion sentences copied from Results, teaching-example leakage, and — in response letters — completion claims ("We have conducted…") next to missing changes. It also flags the writing failures that make a careful draft read like an audit log: drafting or verification remarks inside the paper text, runs of "we do not claim / cannot establish" sentences, an Abstract or Conclusion that spends more than a sentence on limitations, gap markers that carry explanations, method paragraphs that list settings without stating their purpose or that are dominated by implementation conventions, related-work paragraphs that list methods without comparing them, and descriptions that merely restate a method's name ("the Event Parser parses events"). It cannot judge whether a claim is true; the checklist in `references/quality-checklist.md` covers the judgement part. Without a shell, apply the same checklist by hand.
 
 ### 6. Deliver
 
 English manuscript text first (or the language the user asked for), then short Chinese notes with only the headings that have content:
 
 - **主要修改**: what changed and why, for revisions.
-- **材料缺口**: one line per marker that quotes it verbatim, then says what the author must supply — e.g. "- `[MISSING: random seed and number of runs]`：请提供……". Quoting lets the checker confirm that no marker was left out.
+- **材料缺口**: one line per marker that quotes it verbatim, then says what the author must supply and where it might be found — e.g. "- `[MISSING: random seed and number of runs]`：请提供……（训练日志或配置文件中可能有）". Split into 投稿前必须补齐 and 建议补齐. Quoting lets the checker confirm that no marker was left out.
 - **待核验事项**: author-reported facts, unverified citations, journal rules not checked, checks you could not run (raw statistics, images you could not open, rendering), discrepancies found in code, logs or prompt files, and provenance questions (which configuration produced which result). This is where every remark about the material and the drafting goes.
 
 Full-paper display order: Title → Abstract → Introduction → Methods → Results → Discussion → Conclusion → References, adjusted to the journal (merged Results and Discussion, no separate Conclusion, etc.). If output length runs out, say which sections are done and where to continue; never label truncated text as complete. Do not show internal reasoning.
@@ -84,7 +86,9 @@ Full-paper display order: Title → Abstract → Introduction → Methods → Re
 - Keep existing citation numbers/keys and their mapping. Author-supplied references may stay but are listed as unverified until checked; with no source, write `[MISSING: source supporting this statement]` — never a plausible-looking bibliography entry.
 - Reading a summary table is not recomputing statistics; checking a bibliographic record is not checking that the paper supports the sentence; reading a caption is not inspecting the figure. Report each check at the level it was actually done — in 待核验事项, not in the paper.
 - Necessary qualifications are never deleted to make the paper look stronger; they are placed once, where they do their work. Placement is the fix for over-hedging, not removal.
-- When the authors supply their own draft, it is the base: revise it, keep their structure, terms and voice, and bring in improvements at the places that need them.
+- When the authors supply their own draft, it is the base: revise it, keep their structure, terms and voice, and bring in improvements at the places that need them. A revised sentence keeps every specific fact of the original; smoother but vaguer is worse.
+- Relocate, don't delete: implementation conventions move to an implementation-details paragraph or the supplement; limitations move to their claim and the Limitations paragraph. Nothing the authors need is lost.
+- Gaps are closed with real information, never hidden: search the supplied files first, ask once for the essentials, and before submission run the checker with `--final`.
 - Rules of thumb from the lessons (Introduction ≈ 10 % of the paper, references from the last 5 years, ~20 references, Roman table numbers, three-sentence abstract background, one or two conclusion paragraphs) are defaults, never overrides of the journal or the field.
 - Do not overwrite the author's original files; save edits as new files unless the user authorises in-place changes. Treat `DR.Can.md` and other source notes as read-only.
 - No acceptance probabilities, quality scores or "meets SCI standards" verdicts.
@@ -100,4 +104,6 @@ Full-paper display order: Title → Abstract → Introduction → Methods → Re
 | 写图注 / 检查图表 | `figures-tables.md`; visual checks only for images you can see |
 | 逐条回复审稿意见（补充实验还没做） | `reviewer-response.md`; working draft with markers, no "We have conducted" |
 | 投稿前帮我检查一下 | `quality-checklist.md` + checker; report by priority, do not rewrite the paper |
+| 相关工作写得像罗列 / 说清和已有工作的差别 | `introduction.md` § Related work: build the axis grid, write by axis in parallel factual form, put the grid in the memo for checking |
+| 我把缺的信息给你了 / 补齐缺口 | Fill pass (`paper-layer.md` § Closing gaps): `--export-gaps` → `fill_gaps.py` → update dependent sentences → `--final` |
 | 比较两版稿件 / 以我的稿子为主吸收另一版 | `quality-checklist.md` § Comparing versions: judge per dimension and per section, take the author's draft as base, list which passages to adopt from the other version and why |

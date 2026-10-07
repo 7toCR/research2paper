@@ -1,6 +1,6 @@
 {
   "skill_name": "research2paper",
-  "notes": "全部输入为人工构造的验收材料，不代表真实实验、文献或期刊政策。模型输出保存到 evals/runs/<case-id>/<version>/run-<n>/output.md（runs/ 不进仓库）。断言默认只作用于英文正文（第一个“主要修改／材料缺口／待核验事项”标题之前）；单条断言可设 scope 为 notes（只看中文说明）或 all（全文），max_count 限制匹配次数，checker.forbid_codes 列出不允许出现的检查代码。",
+  "notes": "全部输入为人工构造的验收材料，不代表真实实验、文献或期刊政策。模型输出保存到 evals/runs/<case-id>/<version>/run-<n>/output.md（runs/ 不进仓库）。断言默认只作用于英文正文（第一个“主要修改／材料缺口／待核验事项”标题之前）；单条断言可设 scope 为 notes（只看中文说明）或 all（全文），max_count 限制匹配次数，checker.forbid_codes 列出不允许出现的检查代码（含 INFO 级），checker.final 为 true 时按投稿阶段检查（任何缺口都是 ERROR）。",
   "cases": [
     {
       "id": "results-sufficient",
@@ -592,7 +592,7 @@
       ],
       "must_not_match": [
         {
-          "pattern": "first|novel|state-of-the-art",
+          "pattern": "\\bfor the first time\\b|\\b(?:the )?first (?:to|study|work|method|approach|framework|system|attempt)\\b|\\bnovel\\b|state[- ]of[- ]the[- ]art",
           "why": "没有检索证据"
         }
       ],
@@ -679,7 +679,7 @@
       ],
       "must_not_match": [
         {
-          "pattern": "first|novel|state-of-the-art",
+          "pattern": "\\bfor the first time\\b|\\b(?:the )?first (?:to|study|work|method|approach|framework|system|attempt)\\b|\\bnovel\\b|state[- ]of[- ]the[- ]art",
           "why": "不添加无依据主张"
         },
         {
@@ -697,6 +697,200 @@
       "manual": [
         "以作者段落为底稿修改，而不是另写一段",
         "开头改为具体张力：读起来通顺的报告也可能把动作安错参与方"
+      ]
+    },
+    {
+      "id": "related-work-mechanism-contrast",
+      "entries": [
+        "introduction",
+        "pro",
+        "skill"
+      ],
+      "prompt": "写相关工作一段，说清本文和这三项工作的区别。",
+      "input": "相关工作（作者提供的描述）：Clip2Text [5] 在光流峰值处切分片段，并对每段独立生成描述；EventSum [6] 先用目标跟踪器检测事件，再把事件填入固定的报告模板；FactCheck [7] 在报告生成之后，用检索到的路况记录逐句核对。本文：抽取共享事件记录，规划器和写作器都只使用这份记录，检查器对照记录退回修订。",
+      "must_match": [
+        {
+          "pattern": "\\b(?:whereas|instead|unlike|in contrast|by contrast|while|rather than)\\b",
+          "why": "用对照句而不是罗列"
+        },
+        {
+          "pattern": "optical[- ]flow|template|retriev",
+          "why": "写出已有工作的具体机制"
+        }
+      ],
+      "must_not_match": [
+        {
+          "pattern": "\\b(?:lacks?|fails? to|ignores?|cannot handle|do(?:es)? not consider|neglects?)\\b",
+          "why": "材料没有说明已有工作缺少什么，不能写其缺陷"
+        },
+        {
+          "pattern": "\\bfor the first time\\b|\\b(?:the )?first (?:to|study|work|method|approach|framework|system|attempt)\\b|\\bnovel\\b|state[- ]of[- ]the[- ]art",
+          "why": "没有检索证据"
+        }
+      ],
+      "checker": {
+        "mode": "section",
+        "max_errors": 0,
+        "forbid_codes": [
+          "W08",
+          "W09",
+          "W06"
+        ]
+      },
+      "manual": [
+        "按维度（中间表示、修订时机）组织，而不是一项一段",
+        "对照表在中文说明中给出，便于核对"
+      ]
+    },
+    {
+      "id": "revision-keeps-information",
+      "entries": [
+        "introduction",
+        "flash",
+        "skill"
+      ],
+      "prompt": "把这句相关工作润色得更流畅，其他不要改。",
+      "input": "作者原句：Clip2Text [5] segments clips at optical-flow peaks and captions each segment independently, which is why its reports describe each moment but not how events relate.",
+      "must_match": [
+        {
+          "pattern": "optical[- ]flow",
+          "why": "保留具体机制"
+        },
+        {
+          "pattern": "independent",
+          "why": "保留逐段独立生成这一事实"
+        },
+        {
+          "pattern": "\\[5\\]",
+          "why": "保留引用"
+        }
+      ],
+      "must_not_match": [
+        {
+          "pattern": "\\bfor the first time\\b|\\b(?:the )?first (?:to|study|work|method|approach|framework|system|attempt)\\b|\\bnovel\\b|state[- ]of[- ]the[- ]art",
+          "why": "不添加主张"
+        }
+      ],
+      "checker": {
+        "mode": "section",
+        "max_errors": 0,
+        "forbid_codes": [
+          "W08"
+        ]
+      },
+      "manual": [
+        "不能改成“Clip2Text generates clip text”之类只复述名称的句子"
+      ]
+    },
+    {
+      "id": "implementation-detail-triage",
+      "entries": [
+        "methodology",
+        "flash",
+        "pro",
+        "skill"
+      ],
+      "prompt": "写写作器这一节。",
+      "input": "写作器：按报告提纲逐段写作，只使用事件记录中的事实；设计目的：避免报告出现记录之外的参与方。实现约定：图像插入时间戳取相邻两条记录的中点，尾部记录加 1 秒；定位失败时回退到第一条记录；每条任务指令限制在 280 字符以内，并至少包含 3 条有来源的约束。作者没有说明这些数值的理由。",
+      "must_match": [
+        {
+          "pattern": "280",
+          "why": "实现约定挪动而不删除"
+        },
+        {
+          "pattern": "(?i)implementation details?|appendix|supplement",
+          "why": "实现约定集中到实现细节或附录"
+        }
+      ],
+      "must_not_match": [
+        {
+          "pattern": "\\b(?:to balance|chosen to|selected to|empirically chosen|in order to keep)\\b",
+          "why": "作者没给理由，不编造"
+        }
+      ],
+      "checker": {
+        "mode": "section",
+        "max_errors": 0,
+        "forbid_codes": [
+          "M02",
+          "W06"
+        ]
+      },
+      "manual": [
+        "组件段先写目的，再写核心规则；实现约定集中在一处"
+      ]
+    },
+    {
+      "id": "search-before-marking",
+      "entries": [
+        "methodology",
+        "flash",
+        "pro",
+        "skill"
+      ],
+      "prompt": "写 Experimental setup。",
+      "input": "实验：120 条合成片段，比较有无共享记录、有无检查器三种条件。方法笔记里没有写训练轮数和随机种子。附件 config.yaml 内容：seed: 42\nepochs: 30\nbatch_size: 16\nwriter_model: gen-small-v2",
+      "must_match": [
+        {
+          "pattern": "\\b42\\b",
+          "why": "种子在附件中可以找到"
+        },
+        {
+          "pattern": "\\b30\\b",
+          "why": "轮数在附件中可以找到"
+        }
+      ],
+      "must_not_match": [
+        {
+          "pattern": "\\[MISSING:[^\\]]*(?:seed|epoch)",
+          "why": "能在材料中找到的信息不标缺口"
+        }
+      ],
+      "checker": {
+        "mode": "section",
+        "max_errors": 0,
+        "forbid_codes": [
+          "W06"
+        ]
+      },
+      "manual": []
+    },
+    {
+      "id": "gap-fill-pass",
+      "entries": [
+        "flash",
+        "pro",
+        "skill"
+      ],
+      "prompt": "缺的信息我补上了：样本数 240，随机种子 7，检查点为第 30 轮。把稿子里的缺口填好。",
+      "input": "当前稿件段落：We evaluated the pipeline on [MISSING: number of evaluation clips] synthetic clips. All runs used random seed [MISSING: random seed] and the checkpoint from epoch [MISSING: checkpoint epoch].\n\n## 材料缺口\n- `[MISSING: number of evaluation clips]`：请提供。\n- `[MISSING: random seed]`：请提供。\n- `[MISSING: checkpoint epoch]`：请提供。",
+      "must_match": [
+        {
+          "pattern": "\\b240\\b",
+          "why": "填入样本数"
+        },
+        {
+          "pattern": "seed[^.]*\\b7\\b",
+          "why": "填入种子"
+        },
+        {
+          "pattern": "\\b30\\b",
+          "why": "填入检查点"
+        }
+      ],
+      "must_not_match": [
+        {
+          "pattern": "\\[MISSING:",
+          "why": "缺口应全部补齐"
+        }
+      ],
+      "checker": {
+        "mode": "section",
+        "max_errors": 0,
+        "final": true
+      },
+      "manual": [
+        "只替换缺口，不改动其余句子"
       ]
     }
   ]

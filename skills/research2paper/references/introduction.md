@@ -27,13 +27,23 @@ The strongest first paragraph names the concrete problem the paper works on, not
 
 Background then supports this tension instead of preceding it for a page. Use the author's facts and citations for each observation; if an observation has no support yet, it is a position to verify, not an opening claim.
 
-## Connect prior work to the design
+## Related work: compare mechanisms, not names
 
-After organising prior work by approach, make the link to this paper explicit: for each design choice, say which limitation it answers and how.
+A catalogue ("X [1] generates …. Y [2] uses …. Z [3] proposes ….") tells the reader what exists but not how this paper differs, and leaves them to guess why the design answers the problem. Organise prior work by the paper's own design axes instead:
 
-- "Because [limitation of approach X], we [design choice], so that [consequence]."
+1. **Choose two to four axes** from the contribution — the questions the design answers. Typical axes for a system paper: what representation is passed between stages; how decisions from several components are coordinated; how errors or conflicts are detected and handled; which input conditions are supported.
+2. **Fill a grid internally**: rows are the closest works, columns are the axes, each cell is what that work actually does on that axis, with its citation. The source is the cited paper or the authors' description of it. Unknown cells stay empty.
+3. **Write by axis**, not by paper: what prior work does on this axis (grouped where works agree), then what this paper does, in parallel factual form — "[X] [3] conditions generation directly on [A], and [Y] [4] adds [B] before generation; our pipeline instead passes [C] between [stages] so that [effect]."
+4. **Contrast with mechanism facts, not adjectives.** "Explicit", "shared", "unified", "compatible", "coherent" are not differences by themselves. Say what is shared, between which components, and what it prevents.
+5. **Link each design choice to the limitation it answers**: "Because [what approach X does] leads to [problem] when [condition], we [design choice], so that [consequence]."
 
-Without this link the Introduction reads as "here is what others did; here is what we did", and the reader has to guess why the design is a response to the problem.
+**Grounding (not over-claiming).** Describe what a prior work does, not what it lacks. "X lacks / ignores / cannot handle …" needs evidence from X itself; with only a title or abstract, describe X at that level and add a memo item to verify. A work whose cell is unknown is left out of that axis rather than guessed. For full drafts, put the grid in the memo so the authors can check each cell quickly.
+
+**No extra hedging (not over-conservative).** The parallel form "X does A; we do B" is a factual contrast and needs no disclaimer. Do not add "we do not claim that X lacks B" — the parallel form already avoids that claim.
+
+## Revising keeps information
+
+When improving an existing sentence — the authors' or an earlier draft's — the new sentence keeps every specific fact of the old one: what a method does, on which input, by which mechanism. Smoother but vaguer is worse. A description that restates a method's name as its function ("the Temporal Event Parser parses temporal events") carries no information; replace it with what the method does differently ("segments clips into events at optical-flow peaks [2]"). Checker W08 flags name-restating descriptions; W09 flags related-work paragraphs that list methods without any comparison.
 
 ## Position positively, close with contributions
 
@@ -66,4 +76,4 @@ From the DR_CAN notes: cite recent work (≈ last five years), choose references
 
 ## Self-check
 
-A reader of the Introduction alone can say: what the problem is, where existing methods fall short, why each part of the design answers that shortfall, what this paper contributes and where each contribution is evaluated. If the gap still lacks literature, keep the marker and flag it in the memo. No conclusions or numbers appear that the Results do not deliver.
+A reader of the Introduction alone can say: what the problem is, how the closest works handle each design axis and how this paper differs (in mechanism, not adjectives), why each part of the design answers that shortfall, what this paper contributes and where each contribution is evaluated. If the gap still lacks literature, keep the marker and flag it in the memo. No conclusions or numbers appear that the Results do not deliver.

@@ -23,7 +23,12 @@ reports the defects that are easy to miss when re-reading your own draft:
   Conclusion/Abstract sentences copied from Results/Discussion;
 - paper layer: drafting/verification remarks inside the paper text, boundary
   overload (disclaimer runs, an Abstract or Conclusion spent on limitations),
-  over-long gap markers, Methods settings listed without a stated purpose;
+  over-long gap markers, Methods settings listed without a stated purpose,
+  implementation conventions crowding core method text;
+- positioning: descriptions that restate a method's name as its function,
+  related-work paragraphs that list cited methods without any comparison;
+- submission stage (--final): any remaining marker is an error; --export-gaps
+  writes a fill-in template for fill_gaps.py;
 - response letters: completed-tense claims next to missing changes, missing
   Comment/Response/Changes/Location fields, skipped comment numbers,
   thanks-only responses, other reviewers' agreement used as the answer.
@@ -33,6 +38,8 @@ Usage:
     python check_paper_draft.py paper.tex --bib refs.bib --abstract-words 250
     python check_paper_draft.py response.md --mode response
     python check_paper_draft.py draft.md --notes gaps.md --json report.json
+    python check_paper_draft.py draft.md --final
+    python check_paper_draft.py draft.md --export-gaps gaps.json
 
 Exit code 1 when any ERROR is found, otherwise 0. Warnings are heuristics that
 need a human judgement; they are not automatically wrong. Passing the checker
@@ -586,6 +593,33 @@ def check_gaps(doc: Document, report: Report, notes_text: str | None) -> list[st
                     report.warn("G04", where(ln), f"Marker '[MISSING: {body[:60]}]' is not listed in the gap "
                                                   f"notes (quote the marker text there).")
     return [b for b, _ in markers]
+
+
+def check_final(doc: Document, report: Report) -> None:
+    """Submission stage: every remaining marker or provisional label is an error."""
+    for ln in doc.lines:
+        if ln.kind == "notes":
+            continue
+        for m in MISSING_RE.finditer(ln.raw):
+            report.error("G07", where(ln), f"Unresolved gap marker in a submission draft: {m.group(0)[:90]}")
+        if re.search(r"Provisional abstract|暂定草稿", ln.raw, re.I):
+            report.error("G07", where(ln), "Provisional-abstract label in a submission draft; rewrite the abstract "
+                                           "from the finished body.")
+
+
+def export_gaps(doc: Document, path: Path) -> int:
+    """Write a fill-in template: one entry per distinct marker, with the lines where it occurs."""
+    entries: dict[str, dict] = {}
+    for ln in doc.lines:
+        if ln.kind == "notes":
+            continue
+        for m in MISSING_RE.finditer(ln.raw):
+            e = entries.setdefault(m.group(0), {"marker": m.group(0), "lines": [], "section": ln.section, "value": ""})
+            e["lines"].append(ln.no)
+    path.write_text(json.dumps({"draft": str(doc.path), "instructions": "Fill each 'value' with the real "
+                                "information (leave empty to keep the marker), then run fill_gaps.py.",
+                                "gaps": list(entries.values())}, ensure_ascii=False, indent=2), encoding="utf-8")
+    return len(entries)
 
 
 def notes_from_doc(doc: Document) -> str | None:
@@ -1206,6 +1240,58 @@ RATIONALE_RE = re.compile(
 SETTING_NUM_RE = re.compile(r"(?<![\w.\-\[])\d+(?:\.\d+)?(?![\w\]])")
 
 
+CONVENTION_RE = re.compile(
+    r"\b(?:falls? back|fall-?back|offset|mid-?point|at least \d+|at most \d+|no more than \d+|no fewer than \d+|"
+    r"(?:maximum|minimum) of \d+|\d+[\s-]*(?:characters?|tokens?|words?)\b|truncated to|padded to|rounded to|"
+    r"clipped to|defaults? to|appended (?:to|at)|prepended)",
+    re.I)
+IMPL_SECTION_RE = re.compile(r"implementation|details|set-?up|settings?|configuration|appendix|supplement", re.I)
+NAME_PRED_RE = re.compile(
+    r"((?:[A-Z][a-z]+(?:-[A-Za-z]+)?\s+){1,5}[A-Z][a-z]+(?:-[A-Za-z]+)?)"
+    r"(?:\s*\([A-Za-z0-9\-]{2,12}\))?(?:\s*\[[^\]]+\])?\s+([a-z][a-z\-]+(?:\s+[a-z][a-z\-]+){0,6})")
+NAME_LEAD_WORDS = {"The", "In", "This", "These", "Those", "Our", "We", "A", "An", "For", "To", "On", "With", "By",
+                   "As", "At", "From", "Unlike", "Like", "However", "Moreover", "Section", "Table", "Figure", "Fig",
+                   "Both", "Each", "All", "Such", "When", "While", "Here", "Then", "Thus", "Finally", "First",
+                   "Second", "Third"}
+PRED_STOP = {"that", "this", "with", "from", "into", "which", "their", "these", "those", "also", "then", "than",
+             "have", "been", "were", "while", "when", "over", "under", "each", "such", "more", "most", "only",
+             "both", "using", "uses", "based"}
+STEM_SUFFIXES = ("ization", "isation", "ations", "ation", "ables", "able", "ibles", "ible", "ings", "ing", "ers",
+                 "er", "ed", "es", "s", "ive", "ion", "al")
+CITE_TOKEN_RE = re.compile(r"\[(\d+(?:\s*[-–,]\s*\d+)*|@[^\]]+|[A-Z]{1,4}\d{1,3})\]|\\cite[a-z]*\*?(?:\[[^\]]*\])*\{([^}]*)\}")
+CONTRAST_RE = re.compile(
+    r"\b(?:whereas|unlike|in contrast|by contrast|however|while|but|instead|rather than|compared (?:with|to)|"
+    r"differs?|different|both|neither|in common|similarly|likewise|our|we|this paper|this work)\b",
+    re.I)
+
+
+def crude_stem(word: str) -> str:
+    w = word.lower().strip("-")
+    for suf in STEM_SUFFIXES:
+        if len(w) > len(suf) + 3 and w.endswith(suf):
+            w = w[:-len(suf)]
+            break
+    return w[:5]
+
+
+def name_restating(sentence: str) -> str | None:
+    """Return the offending phrase when a sentence describes a method by restating its name."""
+    for m in NAME_PRED_RE.finditer(sentence):
+        name_words = m.group(1).split()
+        while name_words and name_words[0] in NAME_LEAD_WORDS:
+            name_words = name_words[1:]
+        if len(name_words) < 2:
+            continue
+        pred = [w for w in re.split(r"[\s-]+", m.group(2)) if len(w) >= 4 and w.lower() not in PRED_STOP][:4]
+        if len(pred) < 2:
+            continue
+        stems = {crude_stem(w) for part in name_words for w in part.split("-")}
+        overlap = sum(1 for w in pred if crude_stem(w) in stems)
+        if overlap >= 2 and overlap / len(pred) >= 0.5:
+            return f"{' '.join(name_words)} {m.group(2)}"
+    return None
+
+
 def check_paper_layer(doc: Document, report: Report, mode: str, masked: set[int]) -> None:
     excluded = {"references", "notes", "latex_preamble", "nomenclature", "acknowledgements", "yaml"}
     body = [ln for ln in doc.lines if ln.kind not in excluded and ln.no not in masked]
@@ -1251,6 +1337,33 @@ def check_paper_layer(doc: Document, report: Report, mode: str, masked: set[int]
         if len(SETTING_NUM_RE.findall(text)) >= 4 and not RATIONALE_RE.search(text):
             report.info("M01", where(para[0]), "Several settings in this Methods paragraph but no stated purpose; "
                                                "say why the component or rule exists before listing its values.")
+        if not IMPL_SECTION_RE.search(para[0].section):
+            conv_sents = [x for x in sentences(text) if CONVENTION_RE.search(x)]
+            n_hits = len(CONVENTION_RE.findall(text))
+            if len(conv_sents) >= 2 or n_hits >= 3:
+                report.info("M02", where(para[0]), f"{n_hits} implementation conventions (fallbacks, offsets, "
+                                                   f"limits) in core method text; keep the rules readers need to "
+                                                   f"understand the component and move the rest to an "
+                                                   f"implementation-details paragraph or the supplement.")
+
+    # W08: descriptions that restate a method's name
+    for para in paragraphs([ln for ln in body if ln.kind in ("introduction", "related", "methods", "discussion",
+                                                               "other", "preamble")]):
+        for sent in sentences(" ".join(ln.prose for ln in para)):
+            phrase = name_restating(sent)
+            if phrase:
+                report.warn("W08", where(para[0]), f"'{phrase[:70]}' restates the method's name as its function; "
+                                                   f"say what it does differently (input, mechanism, condition).")
+    # W09: related-work catalogue without comparison
+    for para in paragraphs([ln for ln in body if ln.kind in ("introduction", "related")]):
+        raw = MISSING_RE.sub(" ", " ".join(ln.raw for ln in para))
+        sents = sentences(raw)
+        cited = [x for x in sents if CITE_TOKEN_RE.search(x)]
+        keys = {m.group(0) for m in CITE_TOKEN_RE.finditer(raw)}
+        if len(cited) >= 3 and len(keys) >= 3 and not CONTRAST_RE.search(raw):
+            report.info("W09", where(para[0]), f"{len(cited)} cited methods introduced one after another with no "
+                                               f"comparison; organise by design axis and say what each does "
+                                               f"relative to this paper.")
 
 
 # --------------------------------------------------------------------------- #
@@ -1463,6 +1576,8 @@ def run_checks(doc: Document, args: argparse.Namespace, notes_text: str | None =
                                            r"\*\*Proof\b|^\s*Proof[.:]", raw_all, re.M))
     notes = notes_text if notes_text is not None else notes_from_doc(doc)
     check_gaps(doc, report, notes)
+    if getattr(args, "final", False):
+        check_final(doc, report)
     masked: set[int] = set()
     if mode == "response":
         masked = check_response(doc, report)
@@ -1514,6 +1629,10 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--abstract-words", type=int, help="Abstract word limit from the journal guidelines")
     p.add_argument("--title-words", type=int, help="Title word limit from the journal guidelines")
     p.add_argument("--json", type=Path, help="Also write the report as JSON")
+    p.add_argument("--final", action="store_true",
+                   help="Submission stage: every remaining [MISSING] marker or provisional label is an ERROR")
+    p.add_argument("--export-gaps", type=Path, metavar="GAPS_JSON",
+                   help="Write a fill-in template of all markers for fill_gaps.py")
     return p
 
 
@@ -1533,6 +1652,9 @@ def main(argv: list[str] | None = None) -> int:
     except (AttributeError, ValueError):
         pass
     print(format_report(report))
+    if args.export_gaps:
+        n = export_gaps(doc, args.export_gaps)
+        print(f"Exported {n} distinct gap marker(s) to {args.export_gaps}")
     if args.json:
         args.json.write_text(json.dumps({"path": report.path, "format": report.fmt, "mode": report.mode,
                                          "errors": report.count("ERROR"), "warnings": report.count("WARN"),

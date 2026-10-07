@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import contextlib
 import io
+import json
 import sys
 import tempfile
 import unittest
@@ -106,6 +107,51 @@ class PaperLayer(unittest.TestCase):
         text = ("## Results\n\nNo statistical test was performed on the paired outcomes. The aggregate scores "
                 "cannot show why the gain occurs; paired intermediate records would test the mechanism.\n")
         self.assertNotIn("W06", codes(run_text(text, ".md", "--mode", "section")))
+
+
+class PositioningAndGaps(unittest.TestCase):
+    def test_name_restating_description(self):
+        r = run_text("## Related Work\n\nThe Temporal Event Parser [2] parses temporal events in each clip. "
+                     "Graph Neural Networks process graph data [3].\n", ".md", "--mode", "section")
+        w08 = [f for f in r.findings if f.code == "W08"]
+        self.assertEqual(len(w08), 1, cpd.format_report(r))
+        self.assertIn("Temporal Event Parser", w08[0].message)
+
+    def test_catalogue_vs_comparison(self):
+        catalogue = ("## Related Work\n\nClip2Text [5] generates captions directly from frames. EventSum [6] fills "
+                     "report templates from detected events. FactCheck [7] verifies reports against records.\n")
+        compared = catalogue.replace("FactCheck [7] verifies", "Whereas both generate first, FactCheck [7] verifies")
+        self.assertIn("W09", codes(run_text(catalogue, ".md", "--mode", "section")))
+        self.assertNotIn("W09", codes(run_text(compared, ".md", "--mode", "section")))
+
+    def test_conventions_in_core_text(self):
+        self.assertIn("M02", codes(run(FIXTURES / "flawed_layers.md"), "INFO"))
+        text = ("## 2.5 Implementation details\n\nThe insertion point falls back to the first record, the offset is "
+                "0.5 s, and instructions are truncated to 280 characters with at most 3 constraints.\n")
+        self.assertNotIn("M02", codes(run_text(text, ".md", "--mode", "section")))
+
+    def test_final_stage_and_fill_pass(self):
+        import fill_gaps
+        with tempfile.TemporaryDirectory() as tmp:
+            draft = Path(tmp) / "d.md"
+            draft.write_text((SKILL / "assets" / "example_manuscript.md").read_text(encoding="utf-8"), encoding="utf-8")
+            r = run(draft, "--final")
+            self.assertEqual(len([f for f in r.findings if f.code == "G07"]), 2)
+            gaps = Path(tmp) / "gaps.json"
+            doc = cpd.load_document(draft)
+            self.assertEqual(cpd.export_gaps(doc, gaps), 2)
+            data = json.loads(gaps.read_text(encoding="utf-8"))
+            data["gaps"][0]["value"] = "a synthetic accelerometer model with a noise density of 150 ug/sqrt(Hz)"
+            gaps.write_text(json.dumps(data), encoding="utf-8")
+            with contextlib.redirect_stdout(io.StringIO()):
+                fill_gaps.main([str(draft), str(gaps)])
+            filled = Path(tmp) / "d.filled.md"
+            text = filled.read_text(encoding="utf-8")
+            self.assertIn("150 ug/sqrt(Hz)", text)
+            self.assertNotIn("accelerometer model and noise-density", text)  # memo line removed too
+            self.assertEqual(draft.read_text(encoding="utf-8").count("[MISSING:"), 4)  # input untouched
+            r2 = run(filled, "--final")
+            self.assertEqual(len([f for f in r2.findings if f.code == "G07"]), 1)
 
 
 class FlawedLatex(unittest.TestCase):

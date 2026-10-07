@@ -27,7 +27,26 @@ For each component, write in this order:
 5. **Failure handling** — checks, revisions, retries, stopping rules.
 6. **Parameters** — values, with the authors' reason when they give one.
 
-Low-level operating rules (offsets, fallbacks, character limits, thresholds) come after the rationale they serve, or in an implementation-details subsection or appendix if the journal allows. A run of specific rules with no stated purpose reads like a manual; the checker flags such paragraphs (M01, INFO). If the authors gave no reason for a parameter that a reviewer would question, keep the value and ask for the reason in the memo — do not invent one.
+Low-level operating rules come after the rationale they serve — or out of the component paragraph altogether (see the triage below). A run of specific rules with no stated purpose reads like a manual; the checker flags such paragraphs (M01, INFO).
+
+## Detail triage: core, convention, setting
+
+Before writing a component, sort each rule and value into one of three classes:
+
+| Class | Test | Where it goes |
+|---|---|---|
+| **Core method** | The reader needs it to understand how the component works, or the contribution claim would change if it changed | Component paragraph, after the purpose, with the authors' reason |
+| **Implementation convention** | Needed to reimplement exactly, but changing it would not change the idea: offsets, fallbacks, character or token limits, minimum counts, formatting rules | One "Implementation details" paragraph or subsection, a table, or the appendix/supplement — compressed |
+| **Experimental setting** | A value used in a specific experiment: sample counts, seeds, checkpoints, hardware, run counts | Experimental setup or a configuration table |
+
+- **Relocate, never delete.** Every convention stays somewhere in the paper or supplement; list the moves under 主要修改.
+- **Don't invent reasons.** Keep the authors' reason with a core rule. A convention in the implementation-details paragraph needs no justification; ask in the memo only when a reviewer would likely question it.
+- **Spend the space saved on design.** The component paragraph explains why the design is shaped this way; that is what reviewers judge.
+- Checker M02 flags Methods paragraphs dominated by convention-type rules outside an implementation-details section.
+
+## Decisions made by models
+
+If a component decides by prompting a model with criteria rather than by a formal rule, say so plainly and specify what it receives, which criteria it applies and which outcomes are possible (accept, return to a named stage, stop). Do not present such a procedure as a formal algorithm, and do not leave it as an unexplained symbol either.
 
 ## System and architecture papers
 

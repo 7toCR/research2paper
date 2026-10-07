@@ -11,7 +11,7 @@
 
 ## 2. 场景集
 
-[`cases.json`](cases.json) 有 17 个人工构造的场景，全部为虚构材料，覆盖最容易出错的情况：
+[`cases.json`](cases.json) 有 22 个人工构造的场景，全部为虚构材料，覆盖最容易出错的情况：
 
 | 场景 | 主要考察 |
 |---|---|
@@ -29,8 +29,13 @@
 | `positioning-positive-with-contributions` | 正面定位、不堆叠“我们不声称”，以对应章节的贡献收束 |
 | `method-purpose-before-procedure` | 组件先写设计目的，再写规则、修订与停止条件 |
 | `revise-author-draft-as-base` | 以作者自己的段落为底稿修改，保留引用与术语 |
+| `related-work-mechanism-contrast` | 相关工作按机制对照，只写已有工作做了什么，不写它缺什么 |
+| `revision-keeps-information` | 润色后保留原句的具体机制和引用 |
+| `implementation-detail-triage` | 实现约定挪到实现细节而不删除，不编造理由 |
+| `search-before-marking` | 能在附件里找到的信息不标缺口 |
+| `gap-fill-pass` | 作者补充信息后把缺口全部填上（`--final` 无 ERROR） |
 
-每个场景写明适用入口（`entries`）、用户提示（`prompt`）、输入材料（`input` 或 `input_file`）、正则断言（`must_match` / `must_not_match` / `max_count`，可按条设置 `scope`: `body`／`notes`／`all`）、是否运行检查脚本（`checker`，其中 `forbid_codes` 列出不允许出现的检查代码）以及需要人工判断的要点（`manual`）。
+每个场景写明适用入口（`entries`）、用户提示（`prompt`）、输入材料（`input` 或 `input_file`）、正则断言（`must_match` / `must_not_match` / `max_count`，可按条设置 `scope`: `body`／`notes`／`all`）、是否运行检查脚本（`checker`，其中 `forbid_codes` 列出不允许出现的检查代码，`final` 表示按投稿阶段检查）以及需要人工判断的要点（`manual`）。
 
 ## 3. 运行与保存
 

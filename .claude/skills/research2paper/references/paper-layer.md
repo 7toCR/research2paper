@@ -48,6 +48,16 @@ Necessary qualifications are never deleted to make a paper look stronger. They a
 - Put the marker where the fact belongs. If a whole paragraph would be markers, write one plain sentence describing what the paragraph will report, add one marker, and describe the needed material in the memo.
 - Markers are for working drafts. Before submission every marker must be resolved; the memo says which ones block submission.
 
+## Closing gaps
+
+A draft full of markers is honest but unfinished. Close gaps with real information — never by deleting the marker, never by writing a vaguer sentence that hides the missing fact.
+
+1. **Search before marking.** Look for the fact in every supplied file — configs, logs, scripts, READMEs, result tables, supplementary notes — before writing a marker. Record in the memo where you looked, so the authors do not search the same places again.
+2. **Ask once, early.** For a full draft meant for submission, collect the missing essentials (dataset sizes and splits, checkpoints, seeds, preprocessing, evaluation and listening-test or user-study protocol, hardware) into one batched question at intake when the user is present. Keep drafting with markers meanwhile; do not block on the answer.
+3. **Place markers so filling is mechanical.** Put each marker exactly where its value goes, so the sentence reads correctly once filled: "We trained for [MISSING: number of training epochs] epochs." Gather many reproducibility gaps into one configuration table or one setup sentence instead of scattering them through the method text.
+4. **Prioritise the memo list.** Under 材料缺口 split the items into 投稿前必须补齐 (a claim, a number or reproducibility depends on it) and 建议补齐 (useful detail). Each line quotes the marker, says what to provide, and where it might be found.
+5. **Fill pass.** When the authors supply values: export the markers (`check_paper_draft.py draft.md --export-gaps gaps.json`), have the values entered, replace them with `scripts/fill_gaps.py draft.md gaps.json` (exact replacement, filled items removed from the memo list, remaining markers reported), adjust any sentence that depends on a new value (Abstract numbers, captions, the Limitations paragraph), and run `check_paper_draft.py --final`, which turns every remaining marker into an ERROR.
+
 ## Keep what explains
 
 Explanatory sentences are not disclaimers. Keep, and actively write:

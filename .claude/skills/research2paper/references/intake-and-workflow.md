@@ -53,6 +53,7 @@ When the authors supply their own draft, it is the base text: revise it in place
 
 - Always `[MISSING: specific information]` — say exactly what is missing: `[MISSING: number of independent runs per condition]`, not `[MISSING]` or `[MISSING: details]`.
 - Name the item only, in about 12 words or fewer. Why it is missing and what you searched belong in the memo (checker G06).
+- Search all supplied files before writing a marker; place it where the value goes; gather reproducibility gaps into one configuration table or sentence. Closing gaps (batched question at intake, prioritised memo list, fill pass, `--final` check) is described in `paper-layer.md` § Closing gaps.
 - Citation gaps: `[MISSING: source supporting this statement]`.
 - Response letters: `[MISSING: completed analysis and manuscript changes]`, `[MISSING: manuscript location]`.
 - Do not use TODO, TBD, XXX, `??`, `[citation needed]` or Chinese placeholders inside the English text; the checker flags them.
