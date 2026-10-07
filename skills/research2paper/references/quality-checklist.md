@@ -43,6 +43,8 @@ Use before delivering a full draft and for every pre-submission check. Check onl
 | N01 | WARN | Number glued to a unit (`10Hz` → `10 Hz`) |
 | D01 | WARN | Number in Abstract/Conclusion not found in the body |
 | D02 | WARN | Conclusion or Abstract sentence copied from Results/Discussion |
+| V01 | WARN | With `--ledger evidence.json`: a salient number in the paper that no ledger entry records at the precision written (small integers, years, figure/table/equation/section numbers and citations are skipped) |
+| V02 | INFO | With `--ledger`: number of ledger entries per evidence class |
 | R01 | ERROR | Response letter: completed-tense claim next to a missing change or location |
 | R02–R05 | WARN | Missing field, skipped comment number, thanks-only response, other reviewers' agreement used as the answer |
 

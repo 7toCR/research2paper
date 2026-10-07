@@ -29,6 +29,8 @@ reports the defects that are easy to miss when re-reading your own draft:
   related-work paragraphs that list cited methods without any comparison;
 - submission stage (--final): any remaining marker is an error; --export-gaps
   writes a fill-in template for fill_gaps.py;
+- evidence ledger (--ledger): salient numbers in the paper that no ledger entry
+  records (at the precision written);
 - response letters: completed-tense claims next to missing changes, missing
   Comment/Response/Changes/Location fields, skipped comment numbers,
   thanks-only responses, other reviewers' agreement used as the answer.
@@ -40,6 +42,7 @@ Usage:
     python check_paper_draft.py draft.md --notes gaps.md --json report.json
     python check_paper_draft.py draft.md --final
     python check_paper_draft.py draft.md --export-gaps gaps.json
+    python check_paper_draft.py paper.tex --ledger evidence.json
 
 Exit code 1 when any ERROR is found, otherwise 0. Warnings are heuristics that
 need a human judgement; they are not automatically wrong. Passing the checker
@@ -1496,6 +1499,69 @@ def check_consistency(doc: Document, report: Report) -> None:
 
 
 # --------------------------------------------------------------------------- #
+# Checks: evidence ledger (--ledger)
+# --------------------------------------------------------------------------- #
+
+LEDGER_NUM_RE = re.compile(r"\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?")
+
+
+def load_ledger(path: Path) -> list[dict]:
+    """Ledger JSON: {"entries": [{"claim": ..., "numbers": [...], "class": ..., "source": ...}]} or a bare list."""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    entries = data.get("entries", []) if isinstance(data, dict) else data
+    if not isinstance(entries, list):
+        raise ValueError("ledger must be a list of entries or {\"entries\": [...]}")
+    return [e for e in entries if isinstance(e, dict)]
+
+
+def ledger_values(entries: list[dict]) -> list[float]:
+    """Numbers a paper may state. Entries classed missing/conflicting do not count: using one of their
+    numbers is exactly what the ledger should catch."""
+    values: list[float] = []
+    for e in entries:
+        if str(e.get("class", "")).lower() in ("missing", "conflicting", "missing or conflicting"):
+            continue
+        tokens = [str(n) for n in e.get("numbers") or []]
+        if not tokens:
+            tokens = LEDGER_NUM_RE.findall(" ".join(str(e.get(k, "")) for k in ("claim", "value")))
+        for tok in tokens:
+            try:
+                values.append(float(tok.replace(",", "")))
+            except ValueError:
+                continue
+    return values
+
+
+def traced(token: str, values: list[float]) -> bool:
+    """A manuscript number is traced when a ledger value equals it at the precision it is written with."""
+    t = float(token.replace(",", ""))
+    decimals = len(token.split(".", 1)[1]) if "." in token else 0
+    return any(abs(v - t) < 1e-9 or abs(round(v, decimals) - t) < 1e-9 for v in values)
+
+
+def check_ledger(doc: Document, report: Report, entries: list[dict]) -> None:
+    values = ledger_values(entries)
+    classes: dict[str, int] = {}
+    for e in entries:
+        classes[str(e.get("class", "unclassified"))] = classes.get(str(e.get("class", "unclassified")), 0) + 1
+    summary = ", ".join(f"{n} {c}" for c, n in sorted(classes.items())) or "empty"
+    report.info("V02", "-", f"Evidence ledger: {len(entries)} entr{'y' if len(entries) == 1 else 'ies'} ({summary}).")
+    skip = {"references", "notes", "latex_preamble", "yaml"}
+    untraced: dict[str, list[Line]] = {}
+    for ln in doc.lines:
+        if ln.heading or ln.kind in skip:
+            continue
+        for tok in salient_numbers(MISSING_RE.sub(" ", ln.prose)):
+            if not traced(tok, values):
+                untraced.setdefault(tok, []).append(ln)
+    for tok, lines in untraced.items():
+        extra = f" ({len(lines)} occurrences)" if len(lines) > 1 else ""
+        report.warn("V01", where(lines[0]), f"'{tok}' is not in the evidence ledger{extra}: record its source "
+                                            f"(or the computation that produced it), or replace it with a "
+                                            f"[MISSING: ...] marker.")
+
+
+# --------------------------------------------------------------------------- #
 # Checks: reviewer response letters
 # --------------------------------------------------------------------------- #
 
@@ -1659,6 +1725,8 @@ def run_checks(doc: Document, args: argparse.Namespace, notes_text: str | None =
     check_paper_layer(doc, report, mode, masked)
     if mode == "manuscript":
         check_consistency(doc, report)
+    if getattr(args, "ledger", None):
+        check_ledger(doc, report, load_ledger(args.ledger))
     return report
 
 
@@ -1694,6 +1762,8 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--json", type=Path, help="Also write the report as JSON")
     p.add_argument("--final", action="store_true",
                    help="Submission stage: every remaining [MISSING] marker or provisional label is an ERROR")
+    p.add_argument("--ledger", type=Path, metavar="EVIDENCE_JSON",
+                   help="Evidence ledger: every salient number in the paper must be traceable to an entry (V01)")
     p.add_argument("--export-gaps", type=Path, metavar="GAPS_JSON",
                    help="Write a fill-in template of all markers for fill_gaps.py")
     return p
@@ -1707,6 +1777,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.bib and not args.bib.exists():
         print(f"error: {args.bib} not found", file=sys.stderr)
         return 2
+    if args.ledger:
+        try:
+            load_ledger(args.ledger)
+        except (OSError, ValueError) as exc:  # json.JSONDecodeError is a ValueError
+            print(f"error: cannot read ledger {args.ledger}: {exc}", file=sys.stderr)
+            return 2
     doc = load_document(args.input, args.format)
     notes_text = args.notes.read_text(encoding="utf-8", errors="replace") if args.notes else None
     report = run_checks(doc, args, notes_text)

@@ -23,6 +23,7 @@ This file switches on Research2Paper paper mode in this directory and tells the 
 - Manuscript: `paper/main.tex`
 - Bibliography: `paper/refs.bib`
 - Notes: `notes/memo.md`
+- Evidence: `notes/evidence.json`
 - Response letter:
 
 Materials are read-only for the agent: put method notes, experiment records, result tables, figures, references and reviewer comments there. The manuscript is compiled to `paper/build/`; the Chinese notes stay out of the PDF.

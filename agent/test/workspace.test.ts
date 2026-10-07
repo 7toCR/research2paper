@@ -3,6 +3,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "no
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
+import { checkFile } from "../src/actions.ts";
 import { checkTargets } from "../src/gates.ts";
 import { guardCommand, guardFileChange } from "../src/guard.ts";
 import { engineArgs, needsUnicodeEngine, parseLatexLog } from "../src/latex.ts";
@@ -141,6 +142,20 @@ test("guardCommand: mutating commands on materials are flagged, reading them is 
 	assert.equal(flag("python analyze.py materials/results.csv > paper/table.tex"), "allow");
 	assert.equal(flag("cp materials/fig1.png paper/figures/"), "allow");
 	assert.equal(flag("rm paper/build/main.aux"), "allow");
+});
+
+test("checkFile: word limits come from PAPER.md for the manuscript it names", async () => {
+	const cwd = mkdtempSync(join(tmpdir(), "r2p-limits-"));
+	try {
+		initWorkspace(cwd, "article");
+		const paper = join(cwd, "PAPER.md");
+		writeFileSync(paper, readFileSync(paper, "utf8").replace("- Abstract word limit:", "- Abstract word limit: 5"));
+		writeFileSync(join(cwd, "paper", "sections", "abstract.tex"), "This synthetic abstract has clearly more than five words in it.\n");
+		const outcome = await checkFile(createState(), cwd, { path: "paper/main.tex" });
+		assert.ok(outcome.report.findings.some((f) => f.code === "S04" && f.level === "ERROR"), outcome.text);
+	} finally {
+		rmSync(cwd, { recursive: true, force: true });
+	}
 });
 
 test("checkTargets: LaTeX sections and notes map to the main file; a .bib alone is not checked", () => {

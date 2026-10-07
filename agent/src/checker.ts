@@ -26,6 +26,8 @@ export interface CheckOptions {
 	input: string;
 	bib?: string;
 	notes?: string;
+	/** Evidence ledger JSON (--ledger): untraced numbers are reported as V01. */
+	ledger?: string;
 	mode?: CheckMode;
 	final?: boolean;
 	abstractWords?: number;
@@ -107,6 +109,7 @@ export async function runChecker(options: CheckOptions): Promise<{ report: Check
 	if (options.mode && options.mode !== "auto") args.push("--mode", options.mode);
 	if (options.bib) args.push("--bib", options.bib);
 	if (options.notes) args.push("--notes", options.notes);
+	if (options.ledger) args.push("--ledger", options.ledger);
 	if (options.abstractWords) args.push("--abstract-words", String(options.abstractWords));
 	if (options.titleWords) args.push("--title-words", String(options.titleWords));
 	if (options.final) args.push("--final");

@@ -30,7 +30,9 @@ research2paper/
 │   │   ├── state.ts          模式判断、会话状态
 │   │   ├── checker.ts        调用 check_paper_draft.py，解析 JSON 报告
 │   │   ├── paths.ts
-│   │   └── tools/            check_draft（后续：latex_compile、evidence、compute_stats……）
+│   │   ├── evidence.ts       证据账本（notes/evidence.json）
+│   │   ├── stats.ts          精确计算：比率、百分点、相对变化，可直接读 CSV 单元格
+│   │   └── tools/            check_draft、latex_compile、paper_init、fill_gaps、evidence、compute_stats
 │   ├── templates/PAPER.md    /paper init 生成的工作区说明
 │   └── test/                 node --test；含 faux 模型驱动的端到端测试
 └── skills/research2paper/    不变：规则、references、checker（Python 标准库）
@@ -69,15 +71,15 @@ pi 的 `customPrompt` 一旦设置，会同时去掉 pi 自带的 tools 和 rule
 | `latex_compile` | P1 ✅ | 见第 5 节 |
 | 写保护 | P1 ✅ | 在 `tool_call` 钩子里拦截：`materials/` 和 DR.Can.md 只读；工作区外的已有文件要用户确认（无界面时直接拒绝）；bash/PowerShell 中删除、移动、覆盖 `materials/` 的命令要确认（启发式） |
 | `fill_gaps` | P1 ✅ | 调用 `fill_gaps.py`：LaTeX 各节和 `notes/memo.md` 原地填写，其他文件另存 `.filled` 副本；只有在稿件中确实出现的标记，才会从说明里删掉对应条目 |
-| `evidence` | P2 | 证据账本：内容、四类证据分类、出处 |
-| `compute_stats` | P2 | 计算差值、百分点、相对变化，避免心算出错 |
+| `evidence` | P2 ✅ | 证据账本 `notes/evidence.json`：每条记录内容、四类证据分类、出处；可增、改、删、查；被其他条目引用的条目不能删除 |
+| `compute_stats` | P2 ✅ | 计算比率、差值、百分点、相对变化和比值；数值可以直接读 CSV/TSV 单元格；输入和结果都自动记进账本，并注明来源和推导关系；不做显著性检验 |
 | `bib_lookup` | P3 | 用 Crossref/DOI 核对书目记录是否存在，不自动生成引用 |
 | `pdf_preview` | P3 | 把 PDF 页转成图片，供多模态模型检查版面 |
 
 checker 端配套改动：
 
 - 支持多文件 tex（展开 `\input` / `\include`，位置报告为 `sections/x.tex line N`，找不到的文件报 S07）（P1 ✅）
-- `--ledger`：正文中出现、但证据账本里没有的数字报 WARN（P2）
+- `--ledger`：正文中的关键数字在账本里找不到就报 V01（WARN），按正文写出的小数位四舍五入匹配；`missing` 类条目里的数字不算有出处（P2 ✅）
 
 ## 5. LaTeX 编译
 
@@ -113,7 +115,7 @@ checker 端配套改动：
 |---|---|---|
 | **P0 骨架** ✅ | 包清单、激活开关、提示词替换、`PAPER.md` 注入、`<paper_state>`、`check_draft`、`/paper` | faux 模型驱动的端到端测试通过；真实 pi CLI 用 `-e` 加载和 `pi install` 安装都能识别 `--paper` |
 | **P1 MVP** ✅ | `paper_init` + 模板、`latex_compile`、写保护、检查和编译关卡、memo 分离、`fill_gaps`、checker 支持多文件 tex | 从 materials 出发，产出能编译、checker 没有 ERROR 的 PDF 初稿 |
-| **P2 证据** | `evidence`、`compute_stats`、checker `--ledger`、自定义压缩时保留账本摘要 | 正文里没有出处的数字能被检出 |
+| **P2 证据** ✅ | `evidence`、`compute_stats`、checker `--ledger`；账本概况每条用户消息都注入 `<paper_state>`，账本本身是文件，上下文压缩不会丢，因此不需要另写压缩钩子 | 正文里没有出处的数字能被检出 |
 | **P3 增强** | `bib_lookup`、`pdf_preview`、独立的 `paper` 启动器 | 按需推进 |
 
 评测沿用 `evals/`：同一批 case 分别用“只有 Skill 的 pi”和“paper agent”跑，按 `evals/rubric.md` 盲评。另外统计交付时剩余的 ERROR 数和编译成功率。
