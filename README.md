@@ -173,7 +173,9 @@ agent/                               基于 pi 的 Paper Agent（预览）
 - `materials/` 只读，工作区外的已有文件要先经你确认才会被覆盖；
 - 每轮结束时，如果稿件改过，自动编译并检查。有错误就让模型修改，最多两轮，修不好就如实列出剩下的问题；
 - 用 `fill_gaps` 把你提供的信息填进缺口标记，同时从 `notes/memo.md` 删掉对应条目；
-- 证据账本 `notes/evidence.json`：每个事实和数字都记下证据类别和出处。`compute_stats` 直接读 CSV 单元格算比率、百分点和相对变化，结果也记进账本。检查时，正文里找不到账本出处的数字会被标出来。
+- 证据账本 `notes/evidence.json`：每个事实和数字都记下证据类别和出处。`compute_stats` 直接读 CSV 单元格算比率、百分点和相对变化，结果也记进账本。检查时，正文里找不到账本出处的数字会被标出来；
+- `bib_lookup` 用 Crossref 核对参考文献：DOI 是否存在，标题、年份、第一作者是否一致。它只给出核对结果，不会改你的 .bib；
+- `pdf_preview` 把编译好的 PDF 页面转成图片交给模型看，模型只对亲眼看过的页面评价图表和版面。
 
 在其他目录里，pi 保持原样，这些工具也不会出现。
 
@@ -181,9 +183,15 @@ agent/                               基于 pi 的 Paper Agent（预览）
 pi install git:github.com/7toCR/research2paper
 ```
 
+也可以安装独立命令 `paper`，它等于 pi 加上本扩展，并且直接进入论文模式：
+
+```bash
+npm install -g github:7toCR/research2paper
+```
+
 在新目录里执行 `pi --paper`（或在会话中输入 `/paper on`），再执行 `/paper init`。之后进入这个目录就会自动开启论文模式。其他命令：`/paper check`、`/paper compile`、`/paper final`（投稿前检查，任何缺口都算 ERROR）、`/paper status`。
 
-需要 Python 3（检查脚本）和 tectonic 或 latexmk（编译）。设计和后续计划见[设计方案](docs/agent-design.md)。
+需要 Python 3（检查脚本）和 tectonic 或 latexmk（编译）；预览 PDF 需要 pdftoppm（TeX Live 自带），也可以用 mutool 或 Ghostscript 代替；核对参考文献需要能访问 api.crossref.org。设计和后续计划见[设计方案](docs/agent-design.md)。
 
 <a id="checker"></a>
 

@@ -5,10 +5,28 @@
 	"description": "Research2Paper paper agent: a pi package that turns real research material into evidence-bound SCI paper drafts",
 	"license": "MIT",
 	"type": "module",
-	"keywords": ["pi-package"],
+	"keywords": [
+		"pi-package"
+	],
+	"bin": {
+		"paper": "agent/bin/paper.mjs"
+	},
+	"files": [
+		"agent/src",
+		"agent/bin",
+		"agent/templates",
+		"skills",
+		"docs/agent-design.md",
+		"README.md",
+		"LICENSE"
+	],
 	"pi": {
-		"extensions": ["./agent/src/index.ts"],
-		"skills": ["./skills"]
+		"extensions": [
+			"./agent/src/index.ts"
+		],
+		"skills": [
+			"./skills"
+		]
 	},
 	"scripts": {
 		"test": "node --test \"agent/test/*.test.ts\"",

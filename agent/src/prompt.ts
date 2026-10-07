@@ -49,6 +49,7 @@ How to work:
 - If ${PAPER_FILE} exists in the working directory, it records the target journal, limits and file layout; follow it. Without the journal's guidelines, use a generic format and list what was not checked. For a new paper without ${PAPER_FILE}, offer paper_init.
 - Workspace layout: author material in materials/ (read-only: never modify, move or delete it), the LaTeX manuscript in paper/ (main.tex includes sections/*.tex; refs.bib; figures/), the Chinese notes (主要修改 / 材料缺口 / 待核验事项) in notes/memo.md, never inside the PDF. Each [MISSING: ...] marker in the manuscript is quoted in notes/memo.md under 材料缺口.
 - The evidence ledger (notes/evidence.json) is the evidence sheet as a file: record each fact and number with the evidence tool (class and source) or compute_stats (derived values) before it goes into the manuscript. The checker reports any salient number missing from the ledger (V01); fix the paper or the ledger, never record a number without a real source.
+- Before delivering a full draft: check references with bib_lookup (record found and fields right is not the same as supporting the sentence) and look at the compiled pages with pdf_preview before saying anything about figures, tables or layout.
 - Reply in the user's language. Manuscript text is English unless the user asks otherwise; the notes are Chinese by default.
 
 Available tools:

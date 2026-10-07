@@ -1,5 +1,37 @@
 # 更新记录
 
+## 2026-10 · Paper Agent P3：参考文献核对、PDF 预览、独立启动命令
+
+P3 补上了交付前还缺的两项检查：参考文献是否确有其文、版面是否正常；另外提供了一个独立的 `paper` 命令。方案见 [docs/agent-design.md](docs/agent-design.md)。
+
+- **`bib_lookup`：** 用 Crossref 核对 .bib 条目，只读，从不改 .bib。
+  - 有 DOI 的条目：检查 DOI 是否已注册，标题、年份、第一作者是否与记录一致。
+  - 年份只要等于记录上任一出版年份（正式、网络首发、印刷）就算一致。
+  - 没有 DOI 的条目：按标题、作者、年份、期刊检索，列出候选记录，留给作者确认。
+  - 结果里会写明："记录存在"不等于"这篇文献支持引用它的那句话"。
+- **`pdf_preview`：** 把编译好的 PDF 页面转成 PNG，作为图片交给模型，每次最多 6 页。
+  - 优先用 pdftoppm（TeX Live 自带），没有时用 mutool 或 Ghostscript；页数用 `pdfinfo` 读取，pdflatex 生成的 PDF 页面信息是压缩的，直接扫描文件读不出来。
+  - 提示词要求：模型只对亲眼看过的页面评价图表和版面。
+- **`paper` 命令：** `npm install -g github:7toCR/research2paper` 安装后，`paper` 就是 pi 加上本扩展，直接进入论文模式。
+  - `paper install`、`paper auth` 等管理命令会原样交给 pi。
+  - 启动脚本用 `.mjs` 写成，因为 Node 不处理 `node_modules` 里的 TypeScript 文件。
+  - `package.json` 新增 `files` 字段，安装包只含运行需要的 55 个文件。
+- **LaTeX 模板：** hyperref 加上 `hidelinks`，PDF 里不再出现红色链接框。这是 pdf_preview 试用时，模型从预览图里看出来的。
+
+**实测**
+
+- **真实 Crossref**（一次性测试，没有写进仓库）：
+  - 找出了故意写错的年份；
+  - 为缺 DOI 的条目找回了正确记录。
+  - 这次测试纠正了两处设计：原先允许年份相差 1 年，会放过写错的年份；原先只按标题检索，短标题会命中无关记录。
+- **真实模型**（gpt-6-astra，通过 `paper` 命令）：调用 `pdf_preview` 看第 3 页，正确描述了表格及其数据行数。
+- **测试数量：** agent 测试 40 项（新增 8 项，Crossref 用模拟数据和虚构 DOI，不联网）；Python 测试 47 项。
+
+**已知限制**
+
+- `bib_lookup` 只能核对 Crossref 收录的记录。arXiv、书籍章节和部分会议论文可能没有 DOI，或者 DOI 不在 Crossref 注册，这类条目只能手工核对。
+- 图片能否被模型看到，取决于所用模型是否支持图片输入。
+
 ## 2026-10 · Paper Agent P2：证据账本与数值计算
 
 在此之前，Skill 里的"证据表"只存在于模型的上下文中，写完以后无从核对。P2 把它做成一个文件，检查脚本能逐个核对正文里的数字是否有出处。方案见 [docs/agent-design.md](docs/agent-design.md)。

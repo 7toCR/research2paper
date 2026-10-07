@@ -26,17 +26,28 @@ import { PAPER_FILE, toPosix } from "./paths.ts";
 import { buildPreamble, buildStateSection } from "./prompt.ts";
 import { createState, isManuscriptFile, LATEX_SOURCE_EXT, resolveMode } from "./state.ts";
 import { createCheckDraftTool } from "./tools/check-draft.ts";
+import { createBibLookupTool } from "./tools/bib-lookup.ts";
 import { computeStatsTool } from "./tools/compute-stats.ts";
 import { evidenceTool } from "./tools/evidence.ts";
 import { createFillGapsTool } from "./tools/fill-gaps.ts";
 import { createLatexCompileTool } from "./tools/latex-compile.ts";
 import { formatInit, paperInitTool } from "./tools/paper-init.ts";
+import { pdfPreviewTool } from "./tools/pdf-preview.ts";
 import { initWorkspace, isInside, LATEX_TEMPLATES, type LatexTemplate, loadPaperConfig } from "./workspace.ts";
 
 const MODE_ENTRY = "r2p-mode";
 const GATE_MESSAGE = "r2p-gate";
 const STATUS_KEY = "research2paper";
-const PAPER_TOOLS = ["check_draft", "latex_compile", "paper_init", "fill_gaps", "evidence", "compute_stats"];
+const PAPER_TOOLS = [
+	"check_draft",
+	"latex_compile",
+	"paper_init",
+	"fill_gaps",
+	"evidence",
+	"compute_stats",
+	"bib_lookup",
+	"pdf_preview",
+];
 const COMMANDS = ["on", "off", "status", "init", "check", "compile", "final"];
 
 export default function research2paper(pi: ExtensionAPI) {
@@ -49,6 +60,8 @@ export default function research2paper(pi: ExtensionAPI) {
 	pi.registerTool(createFillGapsTool(state));
 	pi.registerTool(evidenceTool);
 	pi.registerTool(computeStatsTool);
+	pi.registerTool(createBibLookupTool());
+	pi.registerTool(pdfPreviewTool);
 
 	const mode = (ctx: ExtensionContext) => resolveMode(state, pi.getFlag("paper") === true, ctx.cwd);
 
